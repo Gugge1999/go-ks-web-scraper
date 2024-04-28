@@ -1,0 +1,1 @@
+För att köra med hot reload: air -c .air.toml
