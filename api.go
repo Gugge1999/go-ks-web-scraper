@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -23,13 +25,13 @@ func init() {
 }
 
 type watch struct {
-	id            string
+	id            string // TODO: Hur ska guid hanteras?
 	watchToScrape string
 	label         string
 	watches       string
 	active        bool
-	// lastEmailSent string
-	// added         string
+	lastEmailSent sql.NullTime
+	added         time.Time
 }
 
 func main() {
@@ -45,10 +47,14 @@ func main() {
 	envPassword := os.Getenv("PGPASSWORD")
 	envDatabase := os.Getenv("PGDATABASE")
 
-	// TODO: Byt till string builder sen: https://pkg.go.dev/strings#Builder
-	dbUrl := "user=" + envUsername + " password=" + envPassword + " host=" + envHost + " port=" + envPort + " dbname=" + envDatabase
+	var dbUrl strings.Builder
+	dbUrl.WriteString(" user=" + envUsername)
+	dbUrl.WriteString(" password=" + envPassword)
+	dbUrl.WriteString(" host=" + envHost)
+	dbUrl.WriteString(" port=" + envPort)
+	dbUrl.WriteString(" dbname=" + envDatabase)
 
-	dbConfig, confParseErr := pgx.ParseConfig(dbUrl)
+	dbConfig, confParseErr := pgx.ParseConfig(dbUrl.String())
 
 	if confParseErr != nil {
 		fmt.Fprintf(os.Stderr, "Invalid dbUrl: %v\n", confParseErr)
@@ -60,9 +66,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", dbConErr)
 		os.Exit(1)
 	}
+
 	defer conn.Close(context.Background())
 
-	selectQuery := "select id, \"watchToScrape\", label, watches, active from watch"
+	selectQuery := "select id, \"watchToScrape\", label, watches, active, \"lastEmailSent\", added from watch"
 
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 	if queryErr != nil {
@@ -75,16 +82,17 @@ func main() {
 	var watches []watch
 	for rows.Next() {
 		var w watch
-		scanErr := rows.Scan(&w.id, &w.watchToScrape, &w.label, &w.watches, &w.active)
+		scanErr := rows.Scan(&w.id, &w.watchToScrape, &w.label, &w.watches, &w.active, &w.lastEmailSent, &w.added)
 
 		if scanErr != nil {
-			fmt.Fprintf(os.Stderr, "Could not get watches: %v\n", scanErr)
+			fmt.Fprintf(os.Stderr, "Could not scan row: %v\n", scanErr)
 			os.Exit(1)
 		}
+
+		fmt.Fprintf(os.Stderr, "%v\n", w.label)
+
 		watches = append(watches, w)
 	}
-
-	fmt.Printf("%+q", watches)
 
 	r := mux.NewRouter()
 
