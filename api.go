@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -24,40 +23,17 @@ func init() {
 	startTime = time.Now()
 }
 
-type watch struct {
-	id            string // TODO: Hur ska guid hanteras?
-	watchToScrape string
-	label         string
-	watches       string
-	active        bool
-	lastEmailSent sql.NullTime
-	added         time.Time
-}
-
 func main() {
-	envErr := godotenv.Load()
+	dbUrl, envErr := getDbUrl()
+
 	if envErr != nil {
-		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
 		os.Exit(1)
 	}
 
-	envHost := os.Getenv("PGHOST")
-	envPort := os.Getenv("PGPORT")
-	envUsername := os.Getenv("PGUSERNAME")
-	envPassword := os.Getenv("PGPASSWORD")
-	envDatabase := os.Getenv("PGDATABASE")
-
-	var dbUrl strings.Builder
-	dbUrl.WriteString(" user=" + envUsername)
-	dbUrl.WriteString(" password=" + envPassword)
-	dbUrl.WriteString(" host=" + envHost)
-	dbUrl.WriteString(" port=" + envPort)
-	dbUrl.WriteString(" dbname=" + envDatabase)
-
-	dbConfig, confParseErr := pgx.ParseConfig(dbUrl.String())
+	dbConfig, confParseErr := pgx.ParseConfig(dbUrl)
 
 	if confParseErr != nil {
-		fmt.Fprintf(os.Stderr, "Invalid dbUrl: %v\n", confParseErr)
+		fmt.Fprintf(os.Stderr, "Invalid url to database: %v\n", confParseErr)
 		os.Exit(1)
 	}
 
@@ -109,4 +85,34 @@ func main() {
 	})
 
 	http.ListenAndServe(":3000", r)
+}
+
+func getDbUrl() (string, error) {
+	envErr := godotenv.Load()
+	if envErr != nil {
+		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
+		return "", envErr
+	}
+
+	envHost := os.Getenv("PGHOST")
+	envPort := os.Getenv("PGPORT")
+	envUsername := os.Getenv("PGUSERNAME")
+	envPassword := os.Getenv("PGPASSWORD")
+	envDatabase := os.Getenv("PGDATABASE")
+	envDatabaseUrl := os.Getenv("DATABASE_URL")
+
+	var dbUrl strings.Builder
+
+	if envDatabaseUrl != "" {
+		// TODO: Fixa för prod
+		dbUrl.WriteString(" user=" + envUsername)
+	} else {
+		dbUrl.WriteString(" user=" + envUsername)
+		dbUrl.WriteString(" password=" + envPassword)
+		dbUrl.WriteString(" host=" + envHost)
+		dbUrl.WriteString(" port=" + envPort)
+		dbUrl.WriteString(" dbname=" + envDatabase)
+
+	}
+	return dbUrl.String(), nil
 }

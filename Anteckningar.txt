@@ -1,1 +1,13 @@
 För att köra med hot reload: air -c .air.toml
+
+
+
+
+TODOS: 
+Byt till gin
+
+
+
+Fixa logger
+
+
