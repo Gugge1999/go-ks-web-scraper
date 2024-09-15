@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -40,6 +41,7 @@ func main() {
 	conn, dbConErr := pgx.ConnectConfig(context.Background(), dbConfig)
 	if dbConErr != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", dbConErr)
+		log.Fatalf("unexpected error while tried to connect to database: %v\n", dbConErr)
 		os.Exit(1)
 	}
 
@@ -104,15 +106,15 @@ func getDbUrl() (string, error) {
 	var dbUrl strings.Builder
 
 	if envDatabaseUrl != "" {
-		// TODO: Fixa för prod
-		dbUrl.WriteString(" user=" + envUsername)
-	} else {
-		dbUrl.WriteString(" user=" + envUsername)
-		dbUrl.WriteString(" password=" + envPassword)
-		dbUrl.WriteString(" host=" + envHost)
-		dbUrl.WriteString(" port=" + envPort)
-		dbUrl.WriteString(" dbname=" + envDatabase)
-
+		dbUrl.WriteString(envDatabaseUrl) // Url för prod
+		return dbUrl.String(), nil
 	}
+
+	dbUrl.WriteString(" user=" + envUsername)
+	dbUrl.WriteString(" password=" + envPassword)
+	dbUrl.WriteString(" host=" + envHost)
+	dbUrl.WriteString(" port=" + envPort)
+	dbUrl.WriteString(" dbname=" + envDatabase)
+
 	return dbUrl.String(), nil
 }
