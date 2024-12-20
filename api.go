@@ -20,10 +20,6 @@ func uptime() time.Duration {
 	return time.Since(startTime)
 }
 
-func init() {
-	startTime = time.Now()
-}
-
 func main() {
 	dbUrl, envErr := getDbUrl()
 
@@ -47,7 +43,7 @@ func main() {
 
 	defer conn.Close(context.Background())
 
-	selectQuery := "select id, \"watchToScrape\", label, watches, active, \"lastEmailSent\", added from watch"
+	selectQuery := "select id, watch_to_scrape, label, watches, active, last_email_sent, added from watch"
 
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 	if queryErr != nil {
