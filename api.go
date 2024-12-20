@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -67,6 +68,12 @@ func main() {
 		watches = append(watches, w)
 	}
 
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+	fmt.Printf("\nSys = %v MiB", bToMb(m.Sys))
+	fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
@@ -82,6 +89,10 @@ func main() {
 	})
 
 	http.ListenAndServe(":3000", r)
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
 }
 
 func getDbUrl() (string, error) {
