@@ -38,7 +38,6 @@ func main() {
 	if dbConErr != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", dbConErr)
 		log.Fatalf("unexpected error while tried to connect to database: %v\n", dbConErr)
-		os.Exit(1)
 	}
 
 	defer conn.Close(context.Background())

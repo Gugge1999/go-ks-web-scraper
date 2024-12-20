@@ -4,7 +4,7 @@ För att köra med hot reload: air -c .air.toml
 
 # Tutorials
 
-https://www.youtube.com/watch?v=pwZuNmAzaH8 How To Build A Complete JSON API In Golang (JWT, Postgres, and Docker)
+[How To Build A Complete JSON API In Golang (JWT, Postgres, and Docker)](https://www.youtube.com/watch?v=pwZuNmAzaH8)
 
 För att lära sig go: https://quii.gitbook.io/learn-go-with-tests
 
