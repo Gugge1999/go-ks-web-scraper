@@ -102,19 +102,19 @@ func byesToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
 
+// TODO: Det är kanske lättare om postgres använder url i dev också. Det slipper man sätta så många variabler
 func getDbUrl() (string, error) {
 	envHost := os.Getenv("PGHOST")
 	envPort := os.Getenv("PGPORT")
 	envUsername := os.Getenv("PGUSERNAME")
 	envPassword := os.Getenv("PGPASSWORD")
 	envDatabase := os.Getenv("PGDATABASE")
-	envDatabaseUrl := os.Getenv("DATABASE_URL")
 
 	var dbUrl strings.Builder
 
-	// TODO: Det gär kanske bättre att kolla om env är prod
-	if envDatabaseUrl != "" {
-		dbUrl.WriteString(envDatabaseUrl) // Url för prod
+	if os.Getenv("ENV") != "dev" {
+		envDatabaseUrl := os.Getenv("DATABASE_URL")
+		dbUrl.WriteString(envDatabaseUrl)
 		return dbUrl.String(), nil
 	}
 
