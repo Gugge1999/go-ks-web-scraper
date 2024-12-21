@@ -2,14 +2,14 @@ package constants
 
 import "os"
 
-const intervalInMin uint32 = 10
+const IntervalInMin uint = 10
 
-func IntervalInMs() uint32 {
+func IntervalInMs() uint {
 	env := os.Getenv("ENV")
 
 	if env == "dev" {
-		return intervalInMin * 1_500
+		return IntervalInMin * 1_500
 	}
 
-	return intervalInMin * 60_000
+	return IntervalInMin * 60_000
 }

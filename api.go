@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"ks-web-scraper/constants"
 	"ks-web-scraper/types"
 	"log"
 	"net/http"
@@ -91,11 +93,32 @@ func main() {
 		fmt.Fprintf(w, "You've requested the book: %s on page %s\n", title, page)
 	})
 
+	// TODO: För att använda lowercase i json dto: https://stackoverflow.com/a/11694255/14671400
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "uptime %s\n", uptime())
+		w.Header().Set("Content-Type", "application/json")
+
+		status := types.ApiStatus{
+			Active:                    true,
+			ScrapingIntervalInMinutes: constants.IntervalInMin,
+			MemoryUsage:               0,
+			Uptime: types.Uptime{
+				Years:   0,
+				Months:  0,
+				Days:    0,
+				Hours:   0,
+				Minutes: 0,
+				Seconds: 0,
+			},
+		}
+
+		json.NewEncoder(w).Encode(status)
 	})
 
+	// TODO: Kolla varför måste det vara 15:04:05?
+	fmt.Fprintf(os.Stderr, "Init API@ %v\n", time.Now().Format("15:04:05"))
+
 	http.ListenAndServe(":3000", r)
+
 }
 
 func byesToMb(b uint64) uint64 {

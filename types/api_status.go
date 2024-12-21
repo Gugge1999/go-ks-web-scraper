@@ -1,16 +1,17 @@
 package types
 
-type apiStatus struct {
-	ScrapingIntervalInMinutes uint8 // active | inactive | pending
-	MemoryUsage               uint16
-	Uptime                    apiUptime
+type ApiStatus struct {
+	Active                    bool   `json:"active"` // active | inactive | pending
+	ScrapingIntervalInMinutes uint   `json:"scrapingIntervalInMinutes"`
+	MemoryUsage               uint16 `json:"memoryUsage"`
+	Uptime                    Uptime `json:"uptime"`
 }
 
-type apiUptime struct {
-	years   uint8
-	months  uint8
-	days    uint8
-	hours   uint8
-	minutes uint8
-	seconds uint8
+type Uptime struct {
+	Years   uint8 `json:"years"`
+	Months  uint8 `json:"months"`
+	Days    uint8 `json:"days"`
+	Hours   uint8 `json:"hours"`
+	Minutes uint8 `json:"minutes"`
+	Seconds uint8 `json:"seconds"`
 }
