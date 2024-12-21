@@ -23,6 +23,12 @@ func uptime() time.Duration {
 }
 
 func main() {
+	envErr := godotenv.Load()
+	if envErr != nil {
+		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
+		os.Exit(1)
+	}
+
 	dbUrl, envErr := getDbUrl()
 
 	if envErr != nil {
@@ -72,7 +78,7 @@ func main() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
-	fmt.Printf("\nSys = %v MiB", bToMb(m.Sys))
+	fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
 	fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
 
 	r := mux.NewRouter()
@@ -92,17 +98,11 @@ func main() {
 	http.ListenAndServe(":3000", r)
 }
 
-func bToMb(b uint64) uint64 {
+func byesToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
 
 func getDbUrl() (string, error) {
-	envErr := godotenv.Load()
-	if envErr != nil {
-		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
-		return "", envErr
-	}
-
 	envHost := os.Getenv("PGHOST")
 	envPort := os.Getenv("PGPORT")
 	envUsername := os.Getenv("PGUSERNAME")
@@ -112,6 +112,7 @@ func getDbUrl() (string, error) {
 
 	var dbUrl strings.Builder
 
+	// TODO: Det gär kanske bättre att kolla om env är prod
 	if envDatabaseUrl != "" {
 		dbUrl.WriteString(envDatabaseUrl) // Url för prod
 		return dbUrl.String(), nil
