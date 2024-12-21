@@ -18,13 +18,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var startTime time.Time
-
-func uptime() time.Duration {
-	return time.Since(startTime)
-}
-
 func main() {
+	startTime := time.Now()
 	envErr := godotenv.Load()
 	if envErr != nil {
 		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
@@ -97,21 +92,33 @@ func main() {
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		uptime := time.Since(startTime)
+
+		seconds := uint8(uptime.Seconds()) % 60
+		minutes := uint8(uptime.Minutes()) % 60
+		hours := uint8(uptime.Hours()) % 24
+		days := uint16(float64(hours/24)) % 30
+		months := uint8(float64(days/30)) % 12
+		years := days / 365
+
 		status := types.ApiStatus{
 			Active:                    true,
 			ScrapingIntervalInMinutes: constants.IntervalInMin,
-			MemoryUsage:               0,
+			MemoryUsage:               0, // TODO: Fixa den
 			Uptime: types.Uptime{
-				Years:   0,
-				Months:  0,
-				Days:    0,
-				Hours:   0,
-				Minutes: 0,
-				Seconds: 0,
+				Seconds: seconds,
+				Minutes: minutes,
+				Hours:   hours,
+				Days:    days,
+				Months:  months,
+				Years:   years,
 			},
 		}
 
-		json.NewEncoder(w).Encode(status)
+		err := json.NewEncoder(w).Encode(status)
+		if err != nil {
+			return
+		}
 	})
 
 	// TODO: Kolla varför måste det vara 15:04:05?

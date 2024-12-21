@@ -16,6 +16,8 @@
 
 ## TODO
 
+* [Använd colly för scraping](https://github.com/gocolly/colly)
+
 * Byt till gin
  
 * Fixa logger
