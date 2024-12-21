@@ -8,7 +8,7 @@ För att köra med hot reload: air -c .air.toml
 
 För att lära sig go: https://quii.gitbook.io/learn-go-with-tests
 
-A JavaScript developer tries Go for the first time: https://gebna.gg/blog/javascript-developer-tries-golang/
+[A JavaScript developer tries Go for the first time](https://gebna.gg/blog/javascript-developer-tries-golang/)
 
 # TODO
 

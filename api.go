@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"ks-web-scraper/api/types"
 	"log"
 	"net/http"
 	"os"
@@ -53,17 +54,17 @@ func main() {
 
 	defer rows.Close()
 
-	var watches []watch
+	var watches []types.Watch
 	for rows.Next() {
-		var w watch
-		scanErr := rows.Scan(&w.id, &w.watchToScrape, &w.label, &w.watches, &w.active, &w.lastEmailSent, &w.added)
+		var w types.Watch
+		scanErr := rows.Scan(&w.Id, &w.WatchToScrape, &w.Label, &w.Watches, &w.Active, &w.LastEmailSent, &w.Added)
 
 		if scanErr != nil {
 			fmt.Fprintf(os.Stderr, "Could not scan row: %v\n", scanErr)
 			os.Exit(1)
 		}
 
-		fmt.Fprintf(os.Stderr, "%v\n", w.label)
+		fmt.Fprintf(os.Stderr, "%v\n", w.Label)
 
 		watches = append(watches, w)
 	}
