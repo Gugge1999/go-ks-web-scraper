@@ -1,4 +1,4 @@
-module ks-web-scraper/api
+module ks-web-scraper
 
 go 1.23.4
 

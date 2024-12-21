@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"ks-web-scraper/api/types"
+	"ks-web-scraper/types"
 	"log"
 	"net/http"
 	"os"
@@ -102,7 +102,7 @@ func byesToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
 
-// TODO: Det är kanske lättare om postgres använder url i dev också. Det slipper man sätta så många variabler
+// TODO: Det är kanske lättare om postgres använder url i dev också. Då slipper man sätta så många variabler
 func getDbUrl() (string, error) {
 	envHost := os.Getenv("PGHOST")
 	envPort := os.Getenv("PGPORT")
