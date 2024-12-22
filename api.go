@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"ks-web-scraper/constants"
+	"ks-web-scraper/middleware"
 	"ks-web-scraper/types"
 	"log"
 	"net/http"
@@ -75,7 +76,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.Use(contentTypeApplicationJsonMiddleware)
+	r.Use(middleware.ContentTypeApplicationJsonMiddleware)
 
 	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -106,14 +107,6 @@ func main() {
 
 	http.ListenAndServe(":3000", r)
 
-}
-
-func contentTypeApplicationJsonMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		next.ServeHTTP(w, r)
-	})
 }
 
 // TODO: Den här verkar endast öka med belastning men minskar aldrig
