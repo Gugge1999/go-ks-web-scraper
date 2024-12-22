@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"runtime/metrics"
 	"strings"
 	"time"
 
@@ -72,12 +73,6 @@ func main() {
 		watches = append(watches, w)
 	}
 
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
-	fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
-	fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
-
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
@@ -92,8 +87,22 @@ func main() {
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		uptime := time.Since(startTime)
+		//var m runtime.MemStats
+		//runtime.ReadMemStats(&m)
+		//// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+		////fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
+		//fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
+		//
+		//go heartBeat()
+		//time.Sleep(time.Second * 5)
+		//
+		//sum := 0
+		//for i := 0; i < 1_000_000_000; i++ {
+		//	sum += i
+		//}
+		//fmt.Println(sum)
 
+		uptime := time.Since(startTime)
 		seconds := uint8(uptime.Seconds()) % 60
 		minutes := uint8(uptime.Minutes()) % 60
 		hours := uint8(uptime.Hours()) % 24
@@ -104,7 +113,8 @@ func main() {
 		status := types.ApiStatus{
 			Active:                    true,
 			ScrapingIntervalInMinutes: constants.IntervalInMin,
-			MemoryUsage:               0, // TODO: Fixa den
+			NumberOfCpus:              runtime.NumCPU(),
+			MemoryUsage:               getMemoryUsageInMb(),
 			Uptime: types.Uptime{
 				Seconds: seconds,
 				Minutes: minutes,
@@ -128,8 +138,27 @@ func main() {
 
 }
 
-func byesToMb(b uint64) uint64 {
-	return b / 1024 / 1024
+func getMemoryUsageInMb() uint64 {
+	const myMetric = "/gc/heap/allocs:bytes"
+
+	// Create a sample for the metric.
+	sample := make([]metrics.Sample, 1)
+	sample[0].Name = myMetric
+
+	// Sample the metric.
+	metrics.Read(sample)
+
+	return sample[0].Value.Uint64()
+}
+
+func byesToMb(bytes uint64) uint64 {
+	return bytes / 1024 / 1024
+}
+
+func heartBeat() {
+	for range time.Tick(time.Second * 1) {
+		//fmt.Println("Foo")
+	}
 }
 
 // TODO: Det är kanske lättare om postgres använder url i dev också. Då slipper man sätta så många variabler
