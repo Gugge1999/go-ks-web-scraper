@@ -7,7 +7,6 @@ import (
 	"ks-web-scraper/constants"
 	"ks-web-scraper/middleware"
 	"ks-web-scraper/types"
-	"log"
 	"net/http"
 	"os"
 	"runtime"
@@ -18,33 +17,44 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 )
 
 func main() {
 	startTime := time.Now()
+
+	// TODO: Kolla varför måste det vara 15:04:05?
+	fmt.Fprintf(os.Stderr, "Init api @ \x1b[%dm%s\x1b[0m\n\n", 32, time.Now().Format("15:04:05"))
+
+	// TODO: Det kanske går att bryta ut skapandet av logger till funktion?
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	runLogFile, logFileError := os.OpenFile("logs/error.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	if logFileError != nil {
+		fmt.Fprintf(os.Stderr, "Kunde inte hitta filen error.log \n")
+	}
+	multi := zerolog.MultiLevelWriter(consoleWriter, runLogFile)
+	log := zerolog.New(multi).With().Timestamp().Logger()
+
 	envErr := godotenv.Load()
 	if envErr != nil {
-		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", envErr)
-		os.Exit(1)
+		log.Panic().Err(envErr).Msg("Error vid hämtning av .env")
 	}
 
-	dbUrl, envErr := getDbUrl()
+	dbUrl, dbUrlError := getDbUrl()
 
-	if envErr != nil {
-		os.Exit(1)
+	if dbUrlError != nil {
+		log.Panic().Err(dbUrlError).Msg("Kunde inte skapa database url")
 	}
 
 	dbConfig, confParseErr := pgx.ParseConfig(dbUrl)
 
 	if confParseErr != nil {
-		fmt.Fprintf(os.Stderr, "Invalid url to database: %v\n", confParseErr)
-		os.Exit(1)
+		log.Panic().Err(confParseErr).Msg("Ogiltig url för databas")
 	}
 
 	conn, dbConErr := pgx.ConnectConfig(context.Background(), dbConfig)
 	if dbConErr != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", dbConErr)
-		log.Fatalf("unexpected error while tried to connect to database: %v\n", dbConErr)
+		log.Panic().Err(dbConErr).Msg("Kunde inte ansluta till databasen")
 	}
 
 	defer conn.Close(context.Background())
@@ -53,8 +63,7 @@ func main() {
 
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 	if queryErr != nil {
-		fmt.Fprintf(os.Stderr, "Could not get watches: %v\n", queryErr)
-		os.Exit(1)
+		log.Error().Msg("SQL query för att hämta bevakningar misslyckades: " + queryErr.Error())
 	}
 
 	defer rows.Close()
@@ -65,8 +74,8 @@ func main() {
 		scanErr := rows.Scan(&w.Id, &w.WatchToScrape, &w.Label, &w.Watches, &w.Active, &w.LastEmailSent, &w.Added)
 
 		if scanErr != nil {
-			fmt.Fprintf(os.Stderr, "Could not scan row: %v\n", scanErr)
-			os.Exit(1)
+			log.Error().Msg("Kunde inte köra scan av raden: " + scanErr.Error())
+			return
 		}
 
 		fmt.Fprintf(os.Stderr, "%v\n", w.Label)
@@ -86,7 +95,6 @@ func main() {
 		fmt.Fprintf(w, "You've requested the book: %s on page %s\n", title, page)
 	})
 
-	// TODO: För att använda lowercase i json dto: https://stackoverflow.com/a/11694255/14671400
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
 		status := types.ApiStatus{
 			Active:                    true,
@@ -102,11 +110,7 @@ func main() {
 		}
 	})
 
-	// TODO: Kolla varför måste det vara 15:04:05?
-	fmt.Fprintf(os.Stderr, "\nInit api@ %v\n", time.Now().Format("15:04:05"))
-
 	http.ListenAndServe(":3000", r)
-
 }
 
 // TODO: Den här verkar endast öka med belastning men minskar aldrig
@@ -120,7 +124,9 @@ func getMemoryUsageInMb() uint64 {
 	// Sample the metric.
 	metrics.Read(sample)
 
-	return byesToMb(sample[0].Value.Uint64())
+	bytesInMb := sample[0].Value.Uint64() / 1024 / 1024
+
+	return bytesInMb
 }
 
 func getUptime(startTime time.Time) types.Uptime {
@@ -142,16 +148,6 @@ func getUptime(startTime time.Time) types.Uptime {
 	}
 }
 
-func byesToMb(bytes uint64) uint64 {
-	return bytes / 1024 / 1024
-}
-
-func heartBeat() {
-	for range time.Tick(time.Second * 1) {
-		//fmt.Println("Foo")
-	}
-}
-
 // TODO: Det är kanske lättare om postgres använder url i dev också. Då slipper man sätta så många variabler
 func getDbUrl() (string, error) {
 	envHost := os.Getenv("PGHOST")
@@ -168,7 +164,7 @@ func getDbUrl() (string, error) {
 		return dbUrl.String(), nil
 	}
 
-	dbUrl.WriteString(" user=" + envUsername)
+	dbUrl.WriteString("user=" + envUsername)
 	dbUrl.WriteString(" password=" + envPassword)
 	dbUrl.WriteString(" host=" + envHost)
 	dbUrl.WriteString(" port=" + envPort)
@@ -176,18 +172,3 @@ func getDbUrl() (string, error) {
 
 	return dbUrl.String(), nil
 }
-
-//var m runtime.MemStats
-//runtime.ReadMemStats(&m)
-//// For info on each, see: https://golang.org/pkg/runtime/#MemStats
-////fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
-//fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
-//
-//go heartBeat()
-//time.Sleep(time.Second * 5)
-//
-//sum := 0
-//for i := 0; i < 1_000_000_000; i++ {
-//	sum += i
-//}
-//fmt.Println(sum)

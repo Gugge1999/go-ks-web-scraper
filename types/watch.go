@@ -2,11 +2,12 @@ package types
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"time"
 )
 
 type Watch struct {
-	Id            string       `json:"id"` // TODO: Hur ska guid hanteras?
+	Id            uuid.UUID    `json:"id"`
 	WatchToScrape string       `json:"watchToScrape"`
 	Label         string       `json:"label"`
 	Watches       string       `json:"watches"` // TODO: Hantera det så: https://stackoverflow.com/a/75944972
