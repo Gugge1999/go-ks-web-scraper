@@ -75,6 +75,8 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.Use(contentTypeApplicationJsonMiddleware)
+
 	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		title := vars["title"]
@@ -85,44 +87,12 @@ func main() {
 
 	// TODO: För att använda lowercase i json dto: https://stackoverflow.com/a/11694255/14671400
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		//var m runtime.MemStats
-		//runtime.ReadMemStats(&m)
-		//// For info on each, see: https://golang.org/pkg/runtime/#MemStats
-		////fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
-		//fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
-		//
-		//go heartBeat()
-		//time.Sleep(time.Second * 5)
-		//
-		//sum := 0
-		//for i := 0; i < 1_000_000_000; i++ {
-		//	sum += i
-		//}
-		//fmt.Println(sum)
-
-		uptime := time.Since(startTime)
-		seconds := uint8(uptime.Seconds()) % 60
-		minutes := uint8(uptime.Minutes()) % 60
-		hours := uint8(uptime.Hours()) % 24
-		days := uint16(float64(hours/24)) % 30
-		months := uint8(float64(days/30)) % 12
-		years := days / 365
-
 		status := types.ApiStatus{
 			Active:                    true,
 			ScrapingIntervalInMinutes: constants.IntervalInMin,
 			NumberOfCpus:              runtime.NumCPU(),
 			MemoryUsage:               getMemoryUsageInMb(),
-			Uptime: types.Uptime{
-				Seconds: seconds,
-				Minutes: minutes,
-				Hours:   hours,
-				Days:    days,
-				Months:  months,
-				Years:   years,
-			},
+			Uptime:                    getUptime(startTime),
 		}
 
 		err := json.NewEncoder(w).Encode(status)
@@ -132,14 +102,23 @@ func main() {
 	})
 
 	// TODO: Kolla varför måste det vara 15:04:05?
-	fmt.Fprintf(os.Stderr, "Init API@ %v\n", time.Now().Format("15:04:05"))
+	fmt.Fprintf(os.Stderr, "\nInit api@ %v\n", time.Now().Format("15:04:05"))
 
 	http.ListenAndServe(":3000", r)
 
 }
 
+func contentTypeApplicationJsonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// TODO: Den här verkar endast öka med belastning men minskar aldrig
 func getMemoryUsageInMb() uint64 {
-	const myMetric = "/gc/heap/allocs:bytes"
+	const myMetric = "/memory/classes/total:bytes"
 
 	// Create a sample for the metric.
 	sample := make([]metrics.Sample, 1)
@@ -148,7 +127,26 @@ func getMemoryUsageInMb() uint64 {
 	// Sample the metric.
 	metrics.Read(sample)
 
-	return sample[0].Value.Uint64()
+	return byesToMb(sample[0].Value.Uint64())
+}
+
+func getUptime(startTime time.Time) types.Uptime {
+	uptime := time.Since(startTime)
+	seconds := uint8(uptime.Seconds()) % 60
+	minutes := uint8(uptime.Minutes()) % 60
+	hours := uint8(uptime.Hours()) % 24
+	days := uint16(float64(hours/24)) % 30
+	months := uint8(float64(days/30)) % 12
+	years := days / 365
+
+	return types.Uptime{
+		Seconds: seconds,
+		Minutes: minutes,
+		Hours:   hours,
+		Days:    days,
+		Months:  months,
+		Years:   years,
+	}
 }
 
 func byesToMb(bytes uint64) uint64 {
@@ -185,3 +183,18 @@ func getDbUrl() (string, error) {
 
 	return dbUrl.String(), nil
 }
+
+//var m runtime.MemStats
+//runtime.ReadMemStats(&m)
+//// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+////fmt.Printf("\nMemory usage = %v MB", byesToMb(m.Sys))
+//fmt.Printf("\nthe host has %d cpus\n", runtime.NumCPU())
+//
+//go heartBeat()
+//time.Sleep(time.Second * 5)
+//
+//sum := 0
+//for i := 0; i < 1_000_000_000; i++ {
+//	sum += i
+//}
+//fmt.Println(sum)
