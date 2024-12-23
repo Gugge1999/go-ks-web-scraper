@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"ks-web-scraper/constants"
 	"ks-web-scraper/middleware"
@@ -84,6 +83,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.PathPrefix("/api/")
 
 	r.Use(middleware.ContentTypeApplicationJsonMiddleware)
 
@@ -96,17 +96,26 @@ func main() {
 	})
 
 	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
-		status := types.ApiStatus{
-			Active:                    true,
-			ScrapingIntervalInMinutes: constants.IntervalInMin,
-			NumberOfCpus:              runtime.NumCPU(),
-			MemoryUsage:               getMemoryUsageInMb(),
-			Uptime:                    getUptime(startTime),
+		conn, err := constants.Upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
 		}
 
-		err := json.NewEncoder(w).Encode(status)
-		if err != nil {
-			return
+		defer conn.Close()
+		for {
+			status := types.ApiStatus{
+				Active:                    true,
+				ScrapingIntervalInMinutes: constants.IntervalInMin,
+				NumberOfCpus:              runtime.NumCPU(),
+				MemoryUsage:               getMemoryUsageInMb(),
+				Uptime:                    getUptime(startTime),
+			}
+			err := conn.WriteJSON(status)
+			if err != nil {
+				return
+			}
+			time.Sleep(time.Second)
 		}
 	})
 
