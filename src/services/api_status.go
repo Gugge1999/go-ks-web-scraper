@@ -1,8 +1,8 @@
 package services
 
 import (
-	"ks-web-scraper/constants"
-	"ks-web-scraper/types"
+	"ks-web-scraper/src/constants"
+	"ks-web-scraper/src/types"
 	"runtime"
 	"runtime/metrics"
 	"time"
