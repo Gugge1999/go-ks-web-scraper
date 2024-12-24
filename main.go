@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"ks-web-scraper/src/constants"
 	"ks-web-scraper/src/services"
 	"ks-web-scraper/src/types"
@@ -17,11 +16,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
-
-var upgraderNy = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 func main() {
 	startTime := time.Now()
