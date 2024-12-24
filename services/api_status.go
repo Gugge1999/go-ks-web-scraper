@@ -9,21 +9,19 @@ import (
 )
 
 func GetApiStatus(startTime time.Time) types.ApiStatus {
-	status := types.ApiStatus{
-		Active:                    true,
+	return types.ApiStatus{
+		Status:                    "active",
 		ScrapingIntervalInMinutes: constants.IntervalInMin,
 		NumberOfCpus:              runtime.NumCPU(),
 		MemoryUsage:               getMemoryUsageInMb(),
 		Uptime:                    getUptime(startTime),
 	}
-
-	return status
 }
 
+// TODO: Den här verkar endast öka med belastning men minskar aldrig
 func getMemoryUsageInMb() uint64 {
 	const myMetric = "/memory/classes/total:bytes"
 
-	// Create a sample for the metric.
 	sample := make([]metrics.Sample, 1)
 	sample[0].Name = myMetric
 

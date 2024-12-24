@@ -55,6 +55,7 @@ func main() {
 		log.Panic().Err(confParseErr).Msg("Ogiltig url för databas")
 	}
 
+	// TODO: Byt till connection pool. Undersök vidare vad det är
 	conn, dbConConfErr := pgx.ConnectConfig(context.Background(), dbConfig)
 	if dbConConfErr != nil {
 		log.Panic().Err(dbConConfErr).Msg("Kunde inte ansluta till databasen")
@@ -93,13 +94,11 @@ func main() {
 		AllowMethods:  []string{"*"},
 		AllowHeaders:  []string{"*"},
 		AllowWildcard: true,
-	}), gin.Logger())
+	}))
 
 	// TODO: Gör om api till constant
 	router.GET("/api/api-status", func(c *gin.Context) {
 		conn, wsError := constants.Upgrader.Upgrade(c.Writer, c.Request, nil)
-		// TODO: Radera username i frontend och backend sen
-		//username := c.DefaultQuery("username", "Guest")
 
 		if wsError != nil {
 			log.Error().Msg("Kunde inte skapa websocket: " + wsError.Error())

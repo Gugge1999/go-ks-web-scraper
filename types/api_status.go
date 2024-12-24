@@ -1,7 +1,7 @@
 package types
 
 type ApiStatus struct {
-	Active                    bool   `json:"active"` // active | inactive | pending
+	Status                    string `json:"status"` // active | inactive | pending
 	ScrapingIntervalInMinutes uint   `json:"scrapingIntervalInMinutes"`
 	MemoryUsage               uint64 `json:"memoryUsage"`
 	NumberOfCpus              int    `json:"numberOfCpus"`
