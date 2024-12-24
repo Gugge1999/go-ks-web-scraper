@@ -11,11 +11,11 @@
 
 * [A JavaScript developer tries Go for the first time](https://gebna.gg/blog/javascript-developer-tries-golang/)
 
+* [Roadmap Go Developer](https://roadmap.sh/golang)
+ 
 ---
 ## TODO
 * [Använd colly för scraping](https://github.com/gocolly/colly)
-
-* Byt till gin
 
 * Fixa linter. Gör det efter. Kan nog bli mycket errors / varningar i början
  

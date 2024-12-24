@@ -3,21 +3,25 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"ks-web-scraper/constants"
-	"ks-web-scraper/middleware"
+	"ks-web-scraper/services"
 	"ks-web-scraper/types"
-	"net/http"
 	"os"
-	"runtime"
-	"runtime/metrics"
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
+
+var upgraderNy = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 func main() {
 	startTime := time.Now()
@@ -51,9 +55,9 @@ func main() {
 		log.Panic().Err(confParseErr).Msg("Ogiltig url för databas")
 	}
 
-	conn, dbConErr := pgx.ConnectConfig(context.Background(), dbConfig)
-	if dbConErr != nil {
-		log.Panic().Err(dbConErr).Msg("Kunde inte ansluta till databasen")
+	conn, dbConConfErr := pgx.ConnectConfig(context.Background(), dbConfig)
+	if dbConConfErr != nil {
+		log.Panic().Err(dbConConfErr).Msg("Kunde inte ansluta till databasen")
 	}
 
 	defer conn.Close(context.Background())
@@ -82,79 +86,51 @@ func main() {
 		watches = append(watches, w)
 	}
 
-	r := mux.NewRouter()
-	r.PathPrefix("/api/")
+	router := gin.Default()
 
-	r.Use(middleware.ContentTypeApplicationJsonMiddleware)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"*"},
+		AllowHeaders:  []string{"*"},
+		AllowWildcard: true,
+	}), gin.Logger())
 
-	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		title := vars["title"]
-		page := vars["page"]
+	// TODO: Gör om api till constant
+	router.GET("/api/api-status", func(c *gin.Context) {
+		conn, wsError := constants.Upgrader.Upgrade(c.Writer, c.Request, nil)
+		// TODO: Radera username i frontend och backend sen
+		//username := c.DefaultQuery("username", "Guest")
 
-		fmt.Fprintf(w, "You've requested the book: %s on page %s\n", title, page)
-	})
-
-	r.HandleFunc("/api-status", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := constants.Upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Println(err)
+		if wsError != nil {
+			log.Error().Msg("Kunde inte skapa websocket: " + wsError.Error())
 			return
 		}
 
 		defer conn.Close()
+
 		for {
-			status := types.ApiStatus{
-				Active:                    true,
-				ScrapingIntervalInMinutes: constants.IntervalInMin,
-				NumberOfCpus:              runtime.NumCPU(),
-				MemoryUsage:               getMemoryUsageInMb(),
-				Uptime:                    getUptime(startTime),
-			}
+			status := services.GetApiStatus(startTime)
+
 			err := conn.WriteJSON(status)
+
 			if err != nil {
 				return
 			}
+
 			time.Sleep(time.Second)
 		}
 	})
 
-	http.ListenAndServe(":3000", r)
-}
+	router.GET("/api/bevakningar/all-watches", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "hejsan"})
+	})
 
-// TODO: Den här verkar endast öka med belastning men minskar aldrig
-func getMemoryUsageInMb() uint64 {
-	const myMetric = "/memory/classes/total:bytes"
-
-	// Create a sample for the metric.
-	sample := make([]metrics.Sample, 1)
-	sample[0].Name = myMetric
-
-	// Sample the metric.
-	metrics.Read(sample)
-
-	bytesInMb := sample[0].Value.Uint64() / 1024 / 1024
-
-	return bytesInMb
-}
-
-func getUptime(startTime time.Time) types.Uptime {
-	uptime := time.Since(startTime)
-	seconds := uint8(uptime.Seconds()) % 60
-	minutes := uint8(uptime.Minutes()) % 60
-	hours := uint8(uptime.Hours()) % 24
-	days := uint16(float64(hours/24)) % 30
-	months := uint8(float64(days/30)) % 12
-	years := days / 365
-
-	return types.Uptime{
-		Seconds: seconds,
-		Minutes: minutes,
-		Hours:   hours,
-		Days:    days,
-		Months:  months,
-		Years:   years,
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
 	}
+
+	router.Run(":" + port)
 }
 
 // TODO: Det är kanske lättare om postgres använder url i dev också. Då slipper man sätta så många variabler
@@ -180,4 +156,9 @@ func getDbUrl() (string, error) {
 	dbUrl.WriteString(" dbname=" + envDatabase)
 
 	return dbUrl.String(), nil
+}
+
+// TODO: Fixa
+func setUpLogger() {
+
 }
