@@ -23,3 +23,12 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
+
+func GetPort() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		return "3000"
+	}
+
+	return port
+}

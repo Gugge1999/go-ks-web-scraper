@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"ks-web-scraper/src/constants"
 	"ks-web-scraper/src/database"
-	"ks-web-scraper/src/services"
+	"ks-web-scraper/src/routes"
 	"os"
 	"time"
 
@@ -24,9 +24,9 @@ func main() {
 
 	// TODO: Det kanske går att bryta ut skapandet av logger till funktion?
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
-	runLogFile, logFileError := os.OpenFile("logs/error.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	runLogFile, logFileError := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if logFileError != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte hitta filen error.log \n")
+		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log \n")
 	}
 	multi := zerolog.MultiLevelWriter(consoleWriter, runLogFile)
 	log := zerolog.New(multi).With().Timestamp().Logger()
@@ -63,40 +63,10 @@ func main() {
 		AllowWildcard: true,
 	}))
 
-	// TODO: Gör om api till constant
-	router.GET("/api/api-status", func(c *gin.Context) {
-		conn, wsError := constants.Upgrader.Upgrade(c.Writer, c.Request, nil)
+	routes.RegisterRoutesApiStatus(router, startTime)
+	routes.RegisterRoutesBevakningar(router)
 
-		if wsError != nil {
-			log.Error().Msg("Kunde inte skapa websocket: " + wsError.Error())
-			return
-		}
-
-		defer conn.Close()
-
-		for {
-			status := services.GetApiStatus(startTime)
-
-			err := conn.WriteJSON(status)
-
-			if err != nil {
-				return
-			}
-
-			time.Sleep(time.Second)
-		}
-	})
-
-	router.GET("/api/bevakningar/all-watches", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "hejsan"})
-	})
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
-	}
-
-	router.Run(":" + port)
+	router.Run(":" + constants.GetPort())
 }
 
 // TODO: Fixa
