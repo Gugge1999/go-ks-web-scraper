@@ -17,7 +17,6 @@ import (
 )
 
 func main() {
-	startTime := time.Now()
 
 	// TODO: Kolla varför måste det vara 15:04:05?
 	fmt.Fprintf(os.Stderr, "Init api @ \x1b[%dm%s\x1b[0m\n\n", 32, time.Now().Format("15:04:05"))
@@ -63,7 +62,7 @@ func main() {
 		AllowWildcard: true,
 	}))
 
-	routes.RegisterRoutesApiStatus(router, startTime)
+	routes.RegisterRoutesApiStatus(router)
 	routes.RegisterRoutesBevakningar(router)
 
 	router.Run(":" + constants.GetPort())

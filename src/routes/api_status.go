@@ -9,7 +9,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func RegisterRoutesApiStatus(router *gin.Engine, startTime time.Time) {
+var startTime = time.Now()
+
+func RegisterRoutesApiStatus(router *gin.Engine) {
 	router.GET("/api/api-status", func(c *gin.Context) {
 		conn, wsError := constants.Upgrader.Upgrade(c.Writer, c.Request, nil)
 
