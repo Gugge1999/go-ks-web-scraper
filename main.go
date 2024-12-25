@@ -36,11 +36,7 @@ func main() {
 		log.Panic().Err(envErr).Msg("Error vid hämtning av .env")
 	}
 
-	dbUrl, dbUrlError := database.GetDbUrl()
-
-	if dbUrlError != nil {
-		log.Panic().Err(dbUrlError).Msg("Kunde inte skapa database url")
-	}
+	dbUrl := database.GetDbUrl()
 
 	dbConfig, confParseErr := pgx.ParseConfig(dbUrl)
 
