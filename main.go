@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"ks-web-scraper/src/constants"
+	"ks-web-scraper/src/database"
 	"ks-web-scraper/src/services"
-	"ks-web-scraper/src/types"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -37,7 +36,7 @@ func main() {
 		log.Panic().Err(envErr).Msg("Error vid hämtning av .env")
 	}
 
-	dbUrl, dbUrlError := getDbUrl()
+	dbUrl, dbUrlError := database.GetDbUrl()
 
 	if dbUrlError != nil {
 		log.Panic().Err(dbUrlError).Msg("Kunde inte skapa database url")
@@ -57,29 +56,7 @@ func main() {
 
 	defer conn.Close(context.Background())
 
-	selectQuery := "select id, watch_to_scrape, label, watches, active, last_email_sent, added from watch"
-
-	rows, queryErr := conn.Query(context.Background(), selectQuery)
-	if queryErr != nil {
-		log.Error().Msg("SQL query för att hämta bevakningar misslyckades: " + queryErr.Error())
-	}
-
-	defer rows.Close()
-
-	var watches []types.Watch
-	for rows.Next() {
-		var w types.Watch
-		scanErr := rows.Scan(&w.Id, &w.WatchToScrape, &w.Label, &w.Watches, &w.Active, &w.LastEmailSent, &w.Added)
-
-		if scanErr != nil {
-			log.Error().Msg("Kunde inte köra scan av raden: " + scanErr.Error())
-			return
-		}
-
-		fmt.Fprintf(os.Stderr, "%v\n", w.Label)
-
-		watches = append(watches, w)
-	}
+	database.TestingQuery(conn)
 
 	router := gin.Default()
 
@@ -124,31 +101,6 @@ func main() {
 	}
 
 	router.Run(":" + port)
-}
-
-// TODO: Det är kanske lättare om postgres använder url i dev också. Då slipper man sätta så många variabler
-func getDbUrl() (string, error) {
-	envHost := os.Getenv("PGHOST")
-	envPort := os.Getenv("PGPORT")
-	envUsername := os.Getenv("PGUSERNAME")
-	envPassword := os.Getenv("PGPASSWORD")
-	envDatabase := os.Getenv("PGDATABASE")
-
-	var dbUrl strings.Builder
-
-	if os.Getenv("ENV") != "dev" {
-		envDatabaseUrl := os.Getenv("DATABASE_URL")
-		dbUrl.WriteString(envDatabaseUrl)
-		return dbUrl.String(), nil
-	}
-
-	dbUrl.WriteString("user=" + envUsername)
-	dbUrl.WriteString(" password=" + envPassword)
-	dbUrl.WriteString(" host=" + envHost)
-	dbUrl.WriteString(" port=" + envPort)
-	dbUrl.WriteString(" dbname=" + envDatabase)
-
-	return dbUrl.String(), nil
 }
 
 // TODO: Fixa
