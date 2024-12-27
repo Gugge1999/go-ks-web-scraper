@@ -15,3 +15,9 @@ type Watch struct {
 	LastEmailSent sql.NullTime `json:"lastEmailSent"`
 	Added         time.Time    `json:"added"`
 }
+
+type ScrapedWatch struct {
+	Name       string `json:"name"`
+	PostedDate string `json:"postedDate"`
+	Link       string `json:"link"`
+}

@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -17,11 +16,34 @@ import (
 )
 
 func main() {
+	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön
+	fmt.Fprintf(os.Stderr, initApiMsg)
 
-	// TODO: Kolla varför måste det vara 15:04:05?
-	fmt.Fprintf(os.Stderr, "Init api @ \x1b[%dm%s\x1b[0m\n\n", 32, time.Now().Format("15:04:05"))
+	log := setUpLogger()
 
-	// TODO: Det kanske går att bryta ut skapandet av logger till funktion?
+	loadDotEnvFile(log)
+
+	conn := setUpDb(log)
+
+	defer conn.Close(context.Background())
+
+	database.GetAllWatches(conn)
+
+	router := gin.Default()
+
+	router.Use(constants.CorsConfig)
+
+	routes.RegisterRoutesApiStatus(router)
+	routes.RegisterRoutesBevakningar(router, conn)
+
+	routerRunErr := router.Run(constants.GetPort())
+
+	if routerRunErr != nil {
+		log.Error().Msg("Kunde inte starta server:" + routerRunErr.Error())
+	}
+}
+
+func setUpLogger() zerolog.Logger {
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 	runLogFile, logFileError := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if logFileError != nil {
@@ -30,14 +52,11 @@ func main() {
 	multi := zerolog.MultiLevelWriter(consoleWriter, runLogFile)
 	log := zerolog.New(multi).With().Timestamp().Logger()
 
-	envErr := godotenv.Load()
-	if envErr != nil {
-		log.Panic().Err(envErr).Msg("Error vid hämtning av .env")
-	}
+	return log
+}
 
-	dbUrl := database.GetDbUrl()
-
-	dbConfig, confParseErr := pgx.ParseConfig(dbUrl)
+func setUpDb(log zerolog.Logger) *pgx.Conn {
+	dbConfig, confParseErr := pgx.ParseConfig(database.GetDbUrl())
 
 	if confParseErr != nil {
 		log.Panic().Err(confParseErr).Msg("Ogiltig url för databas")
@@ -49,26 +68,12 @@ func main() {
 		log.Panic().Err(dbConConfErr).Msg("Kunde inte ansluta till databasen")
 	}
 
-	defer conn.Close(context.Background())
-
-	database.TestingQuery(conn)
-
-	router := gin.Default()
-
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{"*"},
-		AllowHeaders:  []string{"*"},
-		AllowWildcard: true,
-	}))
-
-	routes.RegisterRoutesApiStatus(router)
-	routes.RegisterRoutesBevakningar(router)
-
-	router.Run(":" + constants.GetPort())
+	return conn
 }
 
-// TODO: Fixa
-func setUpLogger() {
-
+func loadDotEnvFile(log zerolog.Logger) {
+	envErr := godotenv.Load()
+	if envErr != nil {
+		log.Panic().Err(envErr).Msg("Error vid hämtning av .env")
+	}
 }

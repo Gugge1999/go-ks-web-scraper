@@ -16,7 +16,7 @@ func RegisterRoutesApiStatus(router *gin.Engine) {
 		conn, wsError := constants.Upgrader.Upgrade(c.Writer, c.Request, nil)
 
 		if wsError != nil {
-			log.Error().Msg("Kunde inte skapa websocket: " + wsError.Error())
+			log.Error().Msg("Kunde inte skapa websocket. Error: " + wsError.Error())
 			return
 		}
 

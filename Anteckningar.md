@@ -5,6 +5,8 @@
 ## Tutorials
 * [Go by Example](https://gobyexample.com/)
 
+* [Structuring Applications in Go](https://www.gobeyond.dev/structuring-applications/)
+ 
 * [How To Build A Complete JSON API In Golang (JWT, Postgres, and Docker)](https://www.youtube.com/watch?v=pwZuNmAzaH8)
 
 * [go with tests](https://quii.gitbook.io/learn-go-with-tests)
@@ -12,7 +14,7 @@
 * [A JavaScript developer tries Go for the first time](https://gebna.gg/blog/javascript-developer-tries-golang/)
 
 * [Roadmap Go Developer](https://roadmap.sh/golang)
- 
+
 ---
 ## TODO
 * [Använd colly för scraping](https://github.com/gocolly/colly)

@@ -1,6 +1,7 @@
 package constants
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"os"
@@ -27,8 +28,15 @@ var Upgrader = websocket.Upgrader{
 func GetPort() string {
 	port := os.Getenv("PORT")
 	if port == "" {
-		return "3000"
+		return ":3000"
 	}
 
-	return port
+	return ":" + port
 }
+
+var CorsConfig = cors.New(cors.Config{
+	AllowOrigins:  []string{"*"},
+	AllowMethods:  []string{"*"},
+	AllowHeaders:  []string{"*"},
+	AllowWildcard: true,
+})

@@ -2,12 +2,14 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
+	"ks-web-scraper/src/database"
 )
 
-func RegisterRoutesBevakningar(router *gin.Engine) {
-
+func RegisterRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.GET("/api/bevakningar/all-watches", func(c *gin.Context) {
-		// TODO: anropa db
-		c.JSON(200, gin.H{"message": "hejsan"})
+		allWatches := database.GetAllWatches(conn)
+
+		c.JSON(200, allWatches)
 	})
 }
