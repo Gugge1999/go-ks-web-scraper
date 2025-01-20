@@ -28,6 +28,7 @@ func main() {
 	defer conn.Close(context.Background())
 
 	database.GetAllWatches(conn)
+	database.GetAllNotifications(conn)
 
 	router := gin.Default()
 

@@ -10,9 +10,5 @@ func GetDbUrl() string {
 		return envDatabaseUrl
 	}
 
-	envUsername := os.Getenv("PGUSERNAME")
-	envPassword := os.Getenv("PGPASSWORD")
-	envDatabase := os.Getenv("PGDATABASE")
-
-	return "postgres://" + envUsername + ":" + envPassword + "@localhost:5432/" + envDatabase
+	return "postgres://" + os.Getenv("PGUSERNAME") + ":" + os.Getenv("PGPASSWORD") + "@localhost:5432/" + os.Getenv("PGDATABASE")
 }
