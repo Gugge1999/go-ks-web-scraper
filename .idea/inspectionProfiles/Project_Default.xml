@@ -7,6 +7,7 @@
       </functions>
       <methods>
         <method importPath="github.com/jackfc/pgx/v5" receiver="*Conn" name="Query" />
+        <method importPath="github.com/jackc/pgx/v5" receiver="*Conn" name="Query" />
       </methods>
     </inspection_tool>
   </profile>
