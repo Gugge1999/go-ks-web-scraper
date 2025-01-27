@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllNotifications(conn *pgx.Conn) []types.Notification {
-	selectQuery := "select id, watch_id, sent from notification"
+	selectQuery := `select id, watch_id, sent from notification`
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 	if queryErr != nil {
 		log.Error().Msg("SQL query för att hämta notiser misslyckades: " + queryErr.Error())

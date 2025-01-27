@@ -18,7 +18,7 @@ type TheParam struct {
 }
 
 func GetAllWatches(conn *pgx.Conn) []types.Watch {
-	selectQuery := "select id, watch_to_scrape, label, watches::jsonb, active, last_email_sent, added from watch"
+	selectQuery := `select id, watch_to_scrape, label, watches::jsonb, active, last_email_sent, added from watch`
 
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 	if queryErr != nil {

@@ -17,7 +17,7 @@ import (
 
 func main() {
 	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön
-	fmt.Fprintf(os.Stderr, initApiMsg)
+	fmt.Fprint(os.Stderr, initApiMsg)
 
 	log := setUpLogger()
 

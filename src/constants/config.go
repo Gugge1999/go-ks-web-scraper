@@ -1,10 +1,11 @@
 package constants
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gorilla/websocket"
 	"net/http"
 	"os"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gorilla/websocket"
 )
 
 const IntervalInMin uint = 10
