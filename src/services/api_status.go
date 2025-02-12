@@ -35,11 +35,11 @@ func getMemoryUsageInMb() uint64 {
 
 func getUptime(startTime time.Time) types.Uptime {
 	uptime := time.Since(startTime)
-	seconds := uint8(uptime.Seconds()) % 60
-	minutes := uint8(uptime.Minutes()) % 60
-	hours := uint8(uptime.Hours()) % 24
-	days := uint16(float64(hours/24)) % 30
-	months := uint8(float64(days/30)) % 12
+	seconds := uint(uptime.Seconds()) % 60
+	minutes := uint(uptime.Minutes()) % 60
+	hours := uint(uptime.Hours()) % 24
+	days := uint(float64(hours/24)) % 30
+	months := uint(float64(days/30)) % 12
 	years := days / 365
 
 	return types.Uptime{
