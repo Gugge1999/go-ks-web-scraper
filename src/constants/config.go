@@ -1,11 +1,9 @@
 package constants
 
 import (
-	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gorilla/websocket"
 )
 
 const IntervalInMin uint = 10
@@ -16,14 +14,6 @@ func IntervalInMs() uint {
 	}
 
 	return IntervalInMin * 60_000
-}
-
-var Upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
 }
 
 func GetPort() string {
