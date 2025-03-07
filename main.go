@@ -27,8 +27,8 @@ func main() {
 
 	defer conn.Close(context.Background())
 
-	database.GetAllWatches(conn)
-	database.GetAllNotifications(conn)
+	// database.GetAllWatches(conn)
+	// database.GetAllNotifications(conn)
 
 	router := gin.Default()
 
@@ -45,11 +45,17 @@ func main() {
 }
 
 func setUpLogger() zerolog.Logger {
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	if _, err := os.Stat("logs/logs.log"); os.IsNotExist(err) {
+		os.MkdirAll("logs/", 0700)
+	}
+
 	runLogFile, logFileError := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if logFileError != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log \n")
+		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log \n%v", logFileError)
+		defer runLogFile.Close()
 	}
+
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 	multi := zerolog.MultiLevelWriter(consoleWriter, runLogFile)
 	log := zerolog.New(multi).With().Timestamp().Logger()
 

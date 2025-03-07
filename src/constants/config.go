@@ -11,9 +11,7 @@ import (
 const IntervalInMin uint = 10
 
 func IntervalInMs() uint {
-	env := os.Getenv("ENV")
-
-	if env == "dev" {
+	if os.Getenv("ENV") == "dev" {
 		return IntervalInMin * 1_500
 	}
 
@@ -23,7 +21,9 @@ func IntervalInMs() uint {
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func GetPort() string {
