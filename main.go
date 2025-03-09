@@ -6,6 +6,7 @@ import (
 	"ks-web-scraper/src/constants"
 	"ks-web-scraper/src/database"
 	"ks-web-scraper/src/routes"
+	"ks-web-scraper/src/services"
 	"os"
 	"time"
 
@@ -26,6 +27,8 @@ func main() {
 	conn := setUpDb(log)
 
 	defer conn.Close(context.Background())
+
+	services.ScrapeWatchInfo("")
 
 	// database.GetAllWatches(conn)
 	// database.GetAllNotifications(conn)
