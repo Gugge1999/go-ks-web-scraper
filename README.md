@@ -16,7 +16,7 @@
 
 ## TODO
 
-- [Använd colly för scraping](https://github.com/gocolly/colly)
+- [Fixa för debug](https://www.reddit.com/r/golang/comments/17ic0s2/how_to_debug_go_code_in_vscode_using_air_live/)
 
 - Fixa linter. Gör det efter. Kan nog bli mycket errors / varningar i början
 

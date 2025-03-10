@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön
+	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön. OBS: Format måste vara exakt 15:04:05
 	fmt.Fprint(os.Stderr, initApiMsg)
 
 	log := setUpLogger()
@@ -28,7 +28,8 @@ func main() {
 
 	defer conn.Close(context.Background())
 
-	services.ScrapeWatchInfo("")
+	// TODO: Byt från hårdkodat värde sen
+	services.ScrapeWatchInfo("https://klocksnack.se/search/4155819/?q=hamilton+khaki&t=post&c[child_nodes]=1&c[nodes][0]=40&c[title_only]=1&o=date")
 
 	// database.GetAllWatches(conn)
 	// database.GetAllNotifications(conn)
