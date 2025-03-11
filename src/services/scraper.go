@@ -35,7 +35,7 @@ func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 			log.Error().Msg("Kunde inte skapa UNIX timestamp från data-time. Error: " + errParseInt.Error())
 		}
 
-		// OBS! Måste vara 2006-01-02T15:04:05-0700 för ISO8601
+		// OBS! Måste vara 2006-01-02T15:04:05-0700 för ISO 8601
 		annonsDate := time.Unix(unixTimestamp, 0).UTC().Format("2006-01-02T15:04:05-0700")
 
 		postedDates = append(postedDates, annonsDate)
