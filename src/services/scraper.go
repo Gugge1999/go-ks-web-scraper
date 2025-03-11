@@ -12,8 +12,8 @@ import (
 
 func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 	var names []string
-	var postedDates []string
 	var links []string
+	var postedDates []string
 	var scrapedWatches []types.ScrapedWatch
 
 	c := colly.NewCollector()
