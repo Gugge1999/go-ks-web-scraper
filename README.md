@@ -1,6 +1,6 @@
 # KS Scraper - Golang
 
-> [!TIP] Tips
+> [!TIP](Tips)
 > För att köra med hot reload: `air -c .air.toml`
 >
 
