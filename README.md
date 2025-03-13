@@ -1,13 +1,13 @@
 # KS Scraper - Golang
 
-> [!TIP](Tips)
+> [!TIP]
 > För att köra med hot reload: `air -c .air.toml`
 >
 
 
 
 ---
-> [!IMPORTANT] TODO
+> [!IMPORTANT]
 >
 > [Fixa för debug](https://www.reddit.com/r/golang/comments/17ic0s2/how_to_debug_go_code_in_vscode_using_air_live/)
 >
@@ -21,7 +21,7 @@
 
 
 ---
-> [!NOTE] Tutorials
+> [!NOTE]
 >
 > [Go by Example](https://gobyexample.com/)
 >
