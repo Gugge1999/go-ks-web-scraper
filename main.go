@@ -55,7 +55,7 @@ func setUpLogger() zerolog.Logger {
 
 	runLogFile, logFileError := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if logFileError != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log \n%v", logFileError)
+		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log\n%v", logFileError)
 		defer runLogFile.Close()
 	}
 
@@ -70,7 +70,7 @@ func setUpDb(log zerolog.Logger) *pgx.Conn {
 	dbConfig, confParseErr := pgx.ParseConfig(database.GetDbUrl())
 
 	if confParseErr != nil {
-		log.Panic().Err(confParseErr).Msg("Ogiltig url för databas")
+		log.Panic().Err(confParseErr).Msg("Ogiltig config för databas")
 	}
 
 	// TODO: Byt till connection pool. Undersök vidare vad det är
