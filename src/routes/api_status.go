@@ -35,7 +35,6 @@ func RegisterRoutesApiStatus(router *gin.Engine) {
 			time.Sleep(time.Second)
 		}
 	})
-
 }
 
 var upgrader = websocket.Upgrader{
