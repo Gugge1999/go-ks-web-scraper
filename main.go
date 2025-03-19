@@ -38,8 +38,8 @@ func main() {
 
 	router.Use(constants.CorsConfig)
 
-	routes.RegisterRoutesApiStatus(router)
-	routes.RegisterRoutesBevakningar(router, conn)
+	routes.ApiRoutesApiStatus(router)
+	routes.ApiRoutesBevakningar(router, conn)
 
 	routerRunErr := router.Run(constants.GetPort())
 

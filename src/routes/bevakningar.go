@@ -2,13 +2,14 @@ package routes
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 	"ks-web-scraper/src/database"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
-func RegisterRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
+func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.GET("/api/bevakningar/all-watches", func(c *gin.Context) {
 		allNotifications := database.GetAllNotifications(conn)
 		allWatches := database.GetAllWatches(conn)
