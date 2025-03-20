@@ -50,6 +50,7 @@ func main() {
 
 func setUpLogger() zerolog.Logger {
 	if _, err := os.Stat("logs/logs.log"); os.IsNotExist(err) {
+		// Förklaring: rwx | 7 | Read, write and execute för user. Mer info finns här: https://stackoverflow.com/a/31151508
 		os.MkdirAll("logs/", 0700)
 	}
 
