@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func RegisterRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
+func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.GET("/api/bevakningar/all-watches", func(c *gin.Context) {
 		// TODO: Ska den meddela användaren om notiser inte kan hämtas?
 		allNotifications, _ := database.GetAllNotifications(conn)

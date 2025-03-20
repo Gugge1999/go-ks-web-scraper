@@ -12,7 +12,7 @@ import (
 
 var startTime = time.Now()
 
-func RegisterRoutesApiStatus(router *gin.Engine) {
+func ApiRoutesApiStatus(router *gin.Engine) {
 	router.GET("/api/api-status", func(c *gin.Context) {
 		conn, wsError := upgrader.Upgrade(c.Writer, c.Request, nil)
 
@@ -35,11 +35,12 @@ func RegisterRoutesApiStatus(router *gin.Engine) {
 			time.Sleep(time.Second)
 		}
 	})
-
 }
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
