@@ -16,15 +16,6 @@ func IntervalInMs() uint {
 	return IntervalInMin * 60_000
 }
 
-func GetPort() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		return ":3000"
-	}
-
-	return ":" + port
-}
-
 var CorsConfig = cors.New(cors.Config{
 	AllowOrigins:  []string{"*"},
 	AllowMethods:  []string{"*"},
