@@ -15,7 +15,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 		allNotifications, _ := database.GetAllNotifications(conn)
 		allWatches := database.GetAllWatches(conn)
 
-		fmt.Fprintf(os.Stderr, "type: %v\n", allNotifications)
+		fmt.Fprintf(os.Stderr, "type: %v %v\n", allNotifications, allWatches)
 
 		c.JSON(200, allWatches)
 	})
