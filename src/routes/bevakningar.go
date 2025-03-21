@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"fmt"
 	"ks-web-scraper/src/database"
-	"os"
+	"ks-web-scraper/src/types"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -15,8 +15,36 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 		allNotifications, _ := database.GetAllNotifications(conn)
 		allWatches := database.GetAllWatches(conn)
 
-		fmt.Fprintf(os.Stderr, "type: %v %v\n", allNotifications, allWatches)
+		res := createWatchDto(allWatches, allNotifications)
 
-		c.JSON(200, allWatches)
+		c.JSON(200, res)
 	})
+}
+
+func createWatchDto(watches []types.Watch, notifications []types.Notification) []types.Watch {
+	var watchDtos []types.Watch
+
+	for _, w := range watches {
+
+		var notiserForBevakning []time.Time
+		for _, notis := range notifications {
+			if w.Id == notis.WatchId {
+				notiserForBevakning = append(notiserForBevakning, notis.Sent)
+			}
+		}
+
+		watchDtos = append(watchDtos, types.Watch{
+			Id:             w.Id,
+			WatchToScrape:  w.WatchToScrape,
+			Label:          w.Label,
+			Active:         w.Active,
+			LastEmailSent:  w.LastEmailSent,
+			Added:          w.Added,
+			ScrapedWatches: w.ScrapedWatches,
+			Notifications:  notiserForBevakning,
+		})
+	}
+
+	return watchDtos
+
 }
