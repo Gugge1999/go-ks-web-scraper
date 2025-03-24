@@ -10,7 +10,9 @@ import (
 
 func GetAllNotifications(conn *pgx.Conn) ([]types.Notification, error) {
 	logger := logger.GetLogger()
-	selectQuery := `SELECT * FROM NOTIFICATION`
+	selectQuery := `SELECT * 
+						FROM NOTIFICATION
+							ORDER BY sent ASC`
 
 	rows, queryErr := conn.Query(context.Background(), selectQuery)
 
@@ -26,7 +28,9 @@ func GetAllNotifications(conn *pgx.Conn) ([]types.Notification, error) {
 func InsertNewNotification(conn *pgx.Conn, watchId string) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 
-	insertQuery := `INSERT INTO notification(watch_id) VALUES ($1) RETURNING *`
+	insertQuery := `INSERT INTO notification(watch_id)
+						VALUES ($1)
+							RETURNING *`
 
 	args := pgx.NamedArgs{
 		"watchId": watchId,

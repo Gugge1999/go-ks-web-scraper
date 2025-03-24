@@ -12,7 +12,9 @@ import (
 func GetAllWatches(conn *pgx.Conn) []types.Watch {
 	logger := logger.GetLogger()
 
-	dbQuery := `select id, watch_to_scrape, label, watches, active, last_email_sent, added from watch`
+	dbQuery := `SELECT id, watch_to_scrape, label, watches, active, last_email_sent, added 
+					FROM watch
+						ORDER BY added`
 
 	rows, queryErr := conn.Query(context.Background(), dbQuery)
 	if queryErr != nil {
@@ -48,7 +50,10 @@ func GetAllWatches(conn *pgx.Conn) []types.Watch {
 func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches []types.ScrapedWatch) []types.Watch {
 	logger := logger.GetLogger()
 
-	dbQuery := `INSERT INTO watch (label, watch_to_scrape, active, watches) VALUES (@label, @watchToScrape, @active, @scrapedWatches) RETURNING *`
+	dbQuery := `INSERT INTO watch (label, watch_to_scrape, active, watches)
+					VALUES
+	 					(@label, @watchToScrape, @active, @scrapedWatches)
+							RETURNING *`
 	args := pgx.NamedArgs{
 		"label":          saveWatchDto.Label,
 		"watchToScrape":  saveWatchDto.WatchToScrape,
