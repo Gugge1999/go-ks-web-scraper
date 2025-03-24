@@ -24,12 +24,6 @@ func main() {
 
 	defer conn.Close(context.Background())
 
-	// TODO: Byt från hårdkodat värde sen
-	services.ScrapeWatchInfo("https://klocksnack.se/search/4155819/?q=hamilton+khaki&t=post&c[child_nodes]=1&c[nodes][0]=40&c[title_only]=1&o=date")
-
-	// database.GetAllWatches(conn)
-	// database.GetAllNotifications(conn)
-
 	router := gin.Default()
 
 	router.Use(constants.CorsConfig)

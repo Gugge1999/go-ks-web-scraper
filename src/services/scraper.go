@@ -41,7 +41,9 @@ func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 		postedDates = append(postedDates, annonsDate)
 	})
 
-	c.Visit(watchToScrape)
+	watchToScrapeUrl := "https://klocksnack.se/search/1/?q=" + watchToScrape + "&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date"
+
+	c.Visit(watchToScrapeUrl)
 
 	// Bygger på att alla 3 array:er är av samma storlek
 	for index := range names {

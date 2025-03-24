@@ -21,3 +21,8 @@ type ScrapedWatch struct {
 	PostedDate string `json:"postedDate"`
 	Link       string `json:"link"`
 }
+
+type SaveWatchDto struct {
+	WatchToScrape string `json:"watchToScrape"`
+	Label         string `json:"label"`
+}
