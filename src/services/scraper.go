@@ -1,13 +1,13 @@
 package services
 
 import (
+	"ks-web-scraper/src/logger"
 	"ks-web-scraper/src/types"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/rs/zerolog/log"
 )
 
 func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
@@ -17,6 +17,7 @@ func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 	var scrapedWatches []types.ScrapedWatch
 
 	c := colly.NewCollector()
+	logger := logger.GetLogger()
 
 	c.OnHTML(".contentRow-title > a", func(e *colly.HTMLElement) {
 		annonsLink := "https://klocksnack.se" + e.Attr("href")
@@ -32,7 +33,7 @@ func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 		unixTimestamp, errParseInt := strconv.ParseInt(dataTime, 10, 64)
 
 		if errParseInt != nil {
-			log.Error().Msg("Kunde inte skapa UNIX timestamp från data-time. Error: " + errParseInt.Error())
+			logger.Error().Msg("Kunde inte skapa UNIX timestamp från data-time. Error: " + errParseInt.Error())
 		}
 
 		// OBS! Måste vara 2006-01-02T15:04:05-0700 för ISO 8601

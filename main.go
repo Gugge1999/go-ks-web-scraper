@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"ks-web-scraper/src/constants"
+	"ks-web-scraper/src/logger"
 	"ks-web-scraper/src/routes"
 	"ks-web-scraper/src/services"
 	"os"
@@ -16,11 +17,9 @@ func main() {
 	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön. OBS: Format måste vara exakt 15:04:05
 	fmt.Fprint(os.Stderr, initApiMsg)
 
-	log := services.SetUpLogger()
+	services.LoadDotEnvFile()
 
-	services.LoadDotEnvFile(log)
-
-	conn := services.SetUpDb(log)
+	conn := services.SetUpDb()
 
 	defer conn.Close(context.Background())
 
@@ -34,6 +33,8 @@ func main() {
 	routerRunErr := router.Run(services.GetPort())
 
 	if routerRunErr != nil {
-		log.Error().Msg("Kunde inte starta server:" + routerRunErr.Error())
+		logger := logger.GetLogger()
+
+		logger.Error().Msg("Kunde inte starta server:" + routerRunErr.Error())
 	}
 }
