@@ -50,8 +50,14 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 			return
 		}
 
+		// TODO: Här ska man kolla om det är error vid hämtning av klockor, alternativt om det gav 0 klockor
 		scrapedWatches := services.ScrapeWatchInfo(saveWatchDto.WatchToScrape)
-		dbRes := database.SaveWatch(conn, saveWatchDto, scrapedWatches)
+		dbRes, err := database.SaveWatch(conn, saveWatchDto, scrapedWatches)
+
+		if err != nil {
+			c.JSON(500, gin.H{"message": "Kunde inte spara bevakning"})
+			return
+		}
 
 		dbRes[0].Notifications = []time.Time{}
 
