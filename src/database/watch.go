@@ -12,9 +12,9 @@ import (
 func GetAllWatches(conn *pgx.Conn) []types.Watch {
 	logger := logger.GetLogger()
 
-	dbQuery := `SELECT id, watch_to_scrape, label, watches, active, last_email_sent, added 
-					FROM watch
-						ORDER BY added`
+	const dbQuery = `SELECT id, watch_to_scrape, label, watches, active, last_email_sent, added 
+						FROM watch
+							ORDER BY added`
 
 	rows, queryErr := conn.Query(context.Background(), dbQuery)
 	if queryErr != nil {
@@ -50,10 +50,10 @@ func GetAllWatches(conn *pgx.Conn) []types.Watch {
 func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches []types.ScrapedWatch) []types.Watch {
 	logger := logger.GetLogger()
 
-	dbQuery := `INSERT INTO watch (label, watch_to_scrape, active, watches)
-					VALUES
-	 					(@label, @watchToScrape, @active, @scrapedWatches)
-							RETURNING *`
+	const dbQuery = `INSERT INTO watch (label, watch_to_scrape, active, watches)
+						VALUES
+	 						(@label, @watchToScrape, @active, @scrapedWatches)
+								RETURNING *`
 	args := pgx.NamedArgs{
 		"label":          saveWatchDto.Label,
 		"watchToScrape":  saveWatchDto.WatchToScrape,
@@ -67,6 +67,7 @@ func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches [
 	}
 
 	var watches []types.Watch
+	// TODO: Kolla om det går att göra en egen funktion för att skapa en watch
 	defer rows.Close()
 	for rows.Next() {
 		var w types.Watch
@@ -89,4 +90,26 @@ func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches [
 	}
 
 	return watches
+}
+
+func DeleteWatch(conn *pgx.Conn, watchId string) (string, error) {
+	logger := logger.GetLogger()
+
+	const dbQuery = `DELETE FROM watch
+						WHERE id = @watchId
+							RETURNING *`
+
+	args := pgx.NamedArgs{
+		"watchId": watchId,
+	}
+
+	rows, err := conn.Query(context.Background(), dbQuery, args)
+	if err != nil {
+		logger.Error().Msg("Kunde inte radera bevakning. Error:" + err.Error())
+		return "", err
+	}
+
+	defer rows.Close()
+
+	return watchId, nil
 }

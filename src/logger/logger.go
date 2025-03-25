@@ -30,7 +30,8 @@ func setUpLogger() zerolog.Logger {
 
 	runLogFile, logFileError := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if logFileError != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte hitta / skapa filen logs.log\n%v", logFileError)
+		fmt.Fprintf(os.Stderr, "Kunde inte öppna, hitta eller skapa filen logs.log\n%v", logFileError)
+		// TODO: Kolla om det är rätt. Man kanske alltid ska stänga filen, även om det gick bra
 		defer runLogFile.Close()
 	}
 

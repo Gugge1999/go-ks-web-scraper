@@ -39,6 +39,18 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 		// TODO: Den här ska bara skicka tillbaka den senaste klockan, inte alla 30
 		c.JSON(200, dbRes[0])
 	})
+
+	router.DELETE(apiBaseUrl+"delete-watch/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		dbRes, err := database.DeleteWatch(conn, id)
+
+		if err != nil {
+			c.JSON(500, gin.H{"message": "Kunde inte radera bevakning med id: " + id})
+		}
+
+		c.JSON(200, gin.H{"deleteWatchId": dbRes})
+
+	})
 }
 
 func createWatchDto(watches []types.Watch, notifications []types.Notification) []types.Watch {
