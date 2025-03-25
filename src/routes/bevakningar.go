@@ -29,9 +29,24 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 	router.POST(apiBaseUrl+"save-watch", func(c *gin.Context) {
 		var saveWatchDto types.SaveWatchDto
-		// TODO: Här ska man kolla om dto innehåller rätt properties
+
 		if err := c.ShouldBindJSON(&saveWatchDto); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(422, gin.H{"message": "Body måste finnas"})
+			return
+		}
+
+		if saveWatchDto.WatchToScrape == "" || saveWatchDto.Label == "" {
+			c.JSON(422, gin.H{"message": "saveWatchDto måste innehålla WatchToScrape och Label"})
+			return
+		}
+
+		if len(saveWatchDto.WatchToScrape) <= 3 || len(saveWatchDto.Label) <= 2 {
+			c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 3 respektive 2 tecken"})
+			return
+		}
+
+		if len(saveWatchDto.WatchToScrape) >= 35 || len(saveWatchDto.Label) >= 30 {
+			c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 35 respektive 30 tecken"})
 			return
 		}
 
