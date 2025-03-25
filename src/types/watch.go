@@ -13,7 +13,7 @@ type Watch struct {
 	LastEmailSent *time.Time   `json:"lastEmailSent"`
 	Added         time.Time    `json:"added"`
 	Notifications []time.Time  `json:"notifications"`
-	LastestWatch  ScrapedWatch `json:"lastestWatch"`
+	LatestWatch   ScrapedWatch `json:"latestWatch"`
 }
 
 type ScrapedWatch struct {
@@ -23,6 +23,12 @@ type ScrapedWatch struct {
 }
 
 type SaveWatchDto struct {
-	WatchToScrape string `json:"watchToScrape"`
-	Label         string `json:"label"`
+	WatchToScrape string `json:"watchToScrape" binding:"required"`
+	Label         string `json:"label" binding:"required"`
+}
+
+type ToggleActiveStatusesDto struct {
+	Ids []string `json:"ids" binding:"required"`
+	// OBS: Den kan inte vara binding:"required" eftersom c.ShouldBindJSON kommer returnera fel då
+	NewActiveStatus bool `json:"newActiveStatus"`
 }

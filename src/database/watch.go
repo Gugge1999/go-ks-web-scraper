@@ -13,7 +13,7 @@ import (
 func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
-	const dbQuery = `SELECT id, watch_to_scrape, label, watches, active, last_email_sent, added 
+	const dbQuery = `SELECT id, label, watches, active, watch_to_scrape, last_email_sent, added 
 						FROM watch
 							ORDER BY added`
 
@@ -31,15 +31,15 @@ func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
 func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches []types.ScrapedWatch) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
-	const dbQuery = `INSERT INTO watch (label, watch_to_scrape, active, watches)
+	const dbQuery = `INSERT INTO watch (label, watches, active, watch_to_scrape)
 						VALUES
-	 						(@label, @watchToScrape, @active, @scrapedWatches)
+	 						(@label, @scrapedWatches, @active, @watchToScrape)
 								RETURNING *`
 	args := pgx.NamedArgs{
 		"label":          saveWatchDto.Label,
-		"watchToScrape":  saveWatchDto.WatchToScrape,
-		"active":         true,
 		"scrapedWatches": scrapedWatches,
+		"active":         true,
+		"watchToScrape":  saveWatchDto.WatchToScrape,
 	}
 
 	rows, err := conn.Query(context.Background(), dbQuery, args)
@@ -75,6 +75,35 @@ func DeleteWatch(conn *pgx.Conn, watchId string) (string, error) {
 	return watchId, nil
 }
 
+func ToggleActiveStatuses(conn *pgx.Conn, ids []string, newActiveStatus bool) ([]types.Watch, error) {
+	logger := logger.GetLogger()
+
+	const dbQuery = `UPDATE watch
+						SET active = @newActiveStatus
+							WHERE id = ANY (@ids)
+								RETURNING *`
+
+	args := pgx.NamedArgs{
+		"newActiveStatus": newActiveStatus,
+		"ids":             ids,
+	}
+
+	rows, err := conn.Query(context.Background(), dbQuery, args)
+	if err != nil {
+		if numberOfIds := len(ids); numberOfIds == 1 {
+			logger.Error().Msg("Kunde inte ändra status  på bevakning. Error:" + err.Error())
+		} else {
+			logger.Error().Msg("Kunde inte ändra statusar på bevakningar. Error:" + err.Error())
+		}
+
+		return nil, err
+	}
+
+	watches := mapDbRowToWatchDto(rows, logger)
+
+	return watches, nil
+}
+
 func mapDbRowToWatchDto(rows pgx.Rows, logger zerolog.Logger) []types.Watch {
 	defer rows.Close()
 
@@ -94,7 +123,7 @@ func mapDbRowToWatchDto(rows pgx.Rows, logger zerolog.Logger) []types.Watch {
 			logger.Error().Msg("Kunde inte göra unmarshal av watches. Error:" + unmarshalErr.Error())
 		}
 
-		w.LastestWatch = scrapedWatches[0]
+		w.LatestWatch = scrapedWatches[0]
 
 		watches = append(watches, w)
 	}

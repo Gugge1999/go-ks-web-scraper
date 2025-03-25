@@ -31,7 +31,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.POST(apiBaseUrl+"save-watch", func(c *gin.Context) {
 		var saveWatchDto types.SaveWatchDto
 
-		shouldReturn := validateBody(c, saveWatchDto)
+		shouldReturn := validateSaveWatchBody(c, saveWatchDto)
 		if shouldReturn {
 			return
 		}
@@ -70,11 +70,36 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 		c.JSON(200, gin.H{"deleteWatchId": dbRes})
 	})
+
+	router.PUT(apiBaseUrl+"toggle-active-statuses", func(c *gin.Context) {
+		var toggleActiveStatusesDto types.ToggleActiveStatusesDto
+
+		if err := c.ShouldBindJSON(&toggleActiveStatusesDto); err != nil {
+			c.JSON(422, gin.H{"message": "Body måste innehålla ett object med två properties. ids: en array med ids. newActiveStatus: en boolean för ny aktiv status"})
+			return
+		}
+
+		for _, id := range toggleActiveStatusesDto.Ids {
+			if err := uuid.Validate(id); err != nil {
+				c.JSON(422, gin.H{"message": "Samtliga ids måste vara av typen uuid v4"})
+				return
+			}
+		}
+
+		dbRes, err := database.ToggleActiveStatuses(conn, toggleActiveStatusesDto.Ids, toggleActiveStatusesDto.NewActiveStatus)
+
+		if err != nil {
+			c.JSON(500, gin.H{"message": "Kunde inte uppdatera bevakningarna"})
+			return
+		}
+
+		c.JSON(200, dbRes)
+	})
 }
 
-func validateBody(c *gin.Context, saveWatchDto types.SaveWatchDto) bool {
+func validateSaveWatchBody(c *gin.Context, saveWatchDto types.SaveWatchDto) bool {
 	if err := c.ShouldBindJSON(&saveWatchDto); err != nil {
-		c.JSON(422, gin.H{"message": "Body måste finnas"})
+		c.JSON(422, gin.H{"message": "Body måste finnas och måste innehålla WatchToScrape och Label"})
 		return true
 	}
 
@@ -101,7 +126,7 @@ func createWatchDto(watches []types.Watch, notifications []types.Notification) [
 
 	for _, w := range watches {
 
-		var notiserForBevakning []time.Time
+		notiserForBevakning := []time.Time{}
 		for _, notis := range notifications {
 			if w.Id == notis.WatchId {
 				notiserForBevakning = append(notiserForBevakning, notis.Sent)
@@ -116,7 +141,7 @@ func createWatchDto(watches []types.Watch, notifications []types.Notification) [
 			Active:        w.Active,
 			LastEmailSent: w.LastEmailSent,
 			Added:         w.Added,
-			LastestWatch:  w.LastestWatch,
+			LatestWatch:   w.LatestWatch,
 			Notifications: notiserForBevakning,
 		})
 	}
