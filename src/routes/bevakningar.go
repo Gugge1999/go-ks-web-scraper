@@ -31,23 +31,8 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.POST(apiBaseUrl+"save-watch", func(c *gin.Context) {
 		var saveWatchDto types.SaveWatchDto
 
-		if err := c.ShouldBindJSON(&saveWatchDto); err != nil {
-			c.JSON(422, gin.H{"message": "Body måste finnas"})
-			return
-		}
-
-		if saveWatchDto.WatchToScrape == "" || saveWatchDto.Label == "" {
-			c.JSON(422, gin.H{"message": "saveWatchDto måste innehålla WatchToScrape och Label"})
-			return
-		}
-
-		if len(saveWatchDto.WatchToScrape) <= 3 || len(saveWatchDto.Label) <= 2 {
-			c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 3 respektive 2 tecken"})
-			return
-		}
-
-		if len(saveWatchDto.WatchToScrape) >= 35 || len(saveWatchDto.Label) >= 30 {
-			c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 35 respektive 30 tecken"})
+		shouldReturn := validateBody(c, saveWatchDto)
+		if shouldReturn {
 			return
 		}
 
@@ -85,6 +70,30 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 		c.JSON(200, gin.H{"deleteWatchId": dbRes})
 	})
+}
+
+func validateBody(c *gin.Context, saveWatchDto types.SaveWatchDto) bool {
+	if err := c.ShouldBindJSON(&saveWatchDto); err != nil {
+		c.JSON(422, gin.H{"message": "Body måste finnas"})
+		return true
+	}
+
+	if saveWatchDto.WatchToScrape == "" || saveWatchDto.Label == "" {
+		c.JSON(422, gin.H{"message": "saveWatchDto måste innehålla WatchToScrape och Label"})
+		return true
+	}
+
+	if len(saveWatchDto.WatchToScrape) <= 3 || len(saveWatchDto.Label) <= 2 {
+		c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 3 respektive 2 tecken"})
+		return true
+	}
+
+	if len(saveWatchDto.WatchToScrape) >= 35 || len(saveWatchDto.Label) >= 30 {
+		c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 35 respektive 30 tecken"})
+		return true
+	}
+
+	return false
 }
 
 func createWatchDto(watches []types.Watch, notifications []types.Notification) []types.Watch {
