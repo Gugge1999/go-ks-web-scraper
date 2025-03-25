@@ -14,9 +14,12 @@ const apiBaseUrl = "/api/bevakningar/"
 
 func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.GET(apiBaseUrl+"all-watches", func(c *gin.Context) {
-		// TODO: Ska den meddela användaren om notiser inte kan hämtas?
-		allNotifications, _ := database.GetAllNotifications(conn)
-		allWatches := database.GetAllWatches(conn)
+		allNotifications, err1 := database.GetAllNotifications(conn)
+		allWatches, err2 := database.GetAllWatches(conn)
+
+		if err1 != nil || err2 != nil {
+			c.JSON(500, gin.H{"message": "Kunde inte hämta bevakningar ", "stack": "Error notiser " + err1.Error() + ". Error bevakningar" + err2.Error()})
+		}
 
 		res := createWatchDto(allWatches, allNotifications)
 
@@ -36,7 +39,6 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 		dbRes[0].Notifications = []time.Time{}
 
-		// TODO: Den här ska bara skicka tillbaka den senaste klockan, inte alla 30
 		c.JSON(200, dbRes[0])
 	})
 
@@ -66,14 +68,15 @@ func createWatchDto(watches []types.Watch, notifications []types.Notification) [
 		}
 
 		watchDtos = append(watchDtos, types.Watch{
-			Id:             w.Id,
-			WatchToScrape:  w.WatchToScrape,
-			Label:          w.Label,
-			Active:         w.Active,
-			LastEmailSent:  w.LastEmailSent,
-			Added:          w.Added,
-			ScrapedWatches: w.ScrapedWatches,
-			Notifications:  notiserForBevakning,
+			// TODO: Finns det något sätt att göra detta med spread operator?
+			Id:            w.Id,
+			WatchToScrape: w.WatchToScrape,
+			Label:         w.Label,
+			Active:        w.Active,
+			LastEmailSent: w.LastEmailSent,
+			Added:         w.Added,
+			LastestWatch:  w.LastestWatch,
+			Notifications: notiserForBevakning,
 		})
 	}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func GetAllWatches(conn *pgx.Conn) []types.Watch {
+func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `SELECT id, watch_to_scrape, label, watches, active, last_email_sent, added 
@@ -19,6 +19,7 @@ func GetAllWatches(conn *pgx.Conn) []types.Watch {
 	rows, queryErr := conn.Query(context.Background(), dbQuery)
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att hämta bevakningar misslyckades: " + queryErr.Error())
+		return nil, queryErr
 	}
 
 	defer rows.Close()
@@ -30,21 +31,22 @@ func GetAllWatches(conn *pgx.Conn) []types.Watch {
 
 		if scanErr != nil {
 			logger.Error().Msg("Kunde inte köra scan av raden: " + scanErr.Error())
-			return nil
+			return nil, scanErr
 		}
 
 		var scrapedWatches []types.ScrapedWatch
 		unmarshalErr := json.Unmarshal([]byte(w.Watches), &scrapedWatches)
 		if unmarshalErr != nil {
 			logger.Error().Msg("Kunde inte göra unmarshal av watches. Error:" + unmarshalErr.Error())
+			return nil, unmarshalErr
 		}
 
-		w.ScrapedWatches = scrapedWatches
+		w.LastestWatch = scrapedWatches[0]
 
 		watches = append(watches, w)
 	}
 
-	return watches
+	return watches, nil
 }
 
 func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches []types.ScrapedWatch) []types.Watch {
@@ -84,7 +86,7 @@ func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches [
 			logger.Error().Msg("Kunde inte göra unmarshal av watches. Error:" + unmarshalErr.Error())
 		}
 
-		w.ScrapedWatches = scrapedWatches
+		w.LastestWatch = scrapedWatches[0]
 
 		watches = append(watches, w)
 	}
