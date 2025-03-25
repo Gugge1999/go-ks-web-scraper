@@ -19,6 +19,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 		if err1 != nil || err2 != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte hämta bevakningar ", "stack": "Error notiser " + err1.Error() + ". Error bevakningar" + err2.Error()})
+			return
 		}
 
 		res := createWatchDto(allWatches, allNotifications)
@@ -48,10 +49,10 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte radera bevakning med id: " + id})
+			return
 		}
 
 		c.JSON(200, gin.H{"deleteWatchId": dbRes})
-
 	})
 }
 
