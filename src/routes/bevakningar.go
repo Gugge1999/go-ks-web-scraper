@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -66,6 +67,11 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 
 	router.DELETE(apiBaseUrl+"delete-watch/:id", func(c *gin.Context) {
 		id := c.Param("id")
+		if err := uuid.Validate(id); err != nil {
+			c.JSON(422, gin.H{"message": "id måste vara av typen uuid v4"})
+			return
+		}
+
 		dbRes, err := database.DeleteWatch(conn, id)
 
 		if err != nil {
