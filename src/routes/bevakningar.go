@@ -23,9 +23,9 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 			return
 		}
 
-		res := createWatchDto(allWatches, allNotifications)
+		dbRes := createWatchDto(allWatches, allNotifications)
 
-		c.JSON(200, res)
+		c.JSON(200, dbRes)
 	})
 
 	router.POST(apiBaseUrl+"save-watch", func(c *gin.Context) {
