@@ -8,15 +8,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const apiBaseUrl = "/api/bevakningar/"
 
-func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
+func ApiRoutesBevakningar(router *gin.Engine, dbPoolConn *pgxpool.Pool) {
 	router.GET(apiBaseUrl+"all-watches", func(c *gin.Context) {
-		allNotifications, err1 := database.GetAllNotifications(conn)
-		allWatches, err2 := database.GetAllWatches(conn)
+		allNotifications, err1 := database.GetAllNotifications(dbPoolConn)
+		allWatches, err2 := database.GetAllWatches(dbPoolConn)
 
 		if err1 != nil || err2 != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte hämta bevakningar ", "stack": "Error notiser " + err1.Error() + ". Error bevakningar" + err2.Error()})
@@ -44,7 +44,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 			return
 		}
 
-		dbRes, err := database.SaveWatch(conn, validatedSaveWatchDto.Label, watchToScrapeUrl, scrapedWatches)
+		dbRes, err := database.SaveWatch(dbPoolConn, validatedSaveWatchDto.Label, watchToScrapeUrl, scrapedWatches)
 
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte spara bevakning"})
@@ -63,7 +63,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 			return
 		}
 
-		dbRes, err := database.DeleteWatch(conn, id)
+		dbRes, err := database.DeleteWatch(dbPoolConn, id)
 
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte radera bevakning med id: " + id})
@@ -88,7 +88,7 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 			}
 		}
 
-		dbRes, err := database.ToggleActiveStatuses(conn, toggleActiveStatusesDto.Ids, toggleActiveStatusesDto.NewActiveStatus)
+		dbRes, err := database.ToggleActiveStatuses(dbPoolConn, toggleActiveStatusesDto.Ids, toggleActiveStatusesDto.NewActiveStatus)
 
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte uppdatera bevakningarna"})

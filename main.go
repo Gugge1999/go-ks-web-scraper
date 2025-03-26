@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"ks-web-scraper/src/constants"
+	"ks-web-scraper/src/database"
 	"ks-web-scraper/src/logger"
 	"ks-web-scraper/src/routes"
 	"ks-web-scraper/src/services"
@@ -17,18 +17,19 @@ func main() {
 	initApiMsg := "Init api @ \x1b[32m" + time.Now().Format("15:04:05") + "\x1b[0m\n\n" // 32 = grön. OBS: Format måste vara exakt 15:04:05
 	fmt.Fprint(os.Stderr, initApiMsg)
 
+	// OBS: Måste ske tidigt
 	services.LoadDotEnvFile()
 
-	conn := services.SetUpDb()
+	database.InitDB()
 
-	defer conn.Close(context.Background())
+	dbPoolConn := database.GetDB()
 
 	router := gin.Default()
 
 	router.Use(constants.CorsConfig)
 
 	routes.ApiRoutesApiStatus(router)
-	routes.ApiRoutesBevakningar(router, conn)
+	routes.ApiRoutesBevakningar(router, dbPoolConn)
 
 	routerRunErr := router.Run(services.GetPort())
 
@@ -37,4 +38,7 @@ func main() {
 
 		logger.Error().Msg("Kunde inte starta server:" + routerRunErr.Error())
 	}
+
+	// TODO: Kolla om det här är rätt
+	defer dbPoolConn.Close()
 }

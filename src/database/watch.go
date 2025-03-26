@@ -7,17 +7,18 @@ import (
 	"ks-web-scraper/src/types"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 )
 
-func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
+func GetAllWatches(dbPoolConn *pgxpool.Pool) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `SELECT id, label, watches, active, watch_to_scrape, last_email_sent, added 
 						FROM watch
 							ORDER BY added`
 
-	rows, queryErr := conn.Query(context.Background(), dbQuery)
+	rows, queryErr := dbPoolConn.Query(context.Background(), dbQuery)
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att hämta bevakningar misslyckades: " + queryErr.Error())
 		return nil, queryErr
@@ -28,7 +29,7 @@ func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
 	return watches, nil
 }
 
-func SaveWatch(conn *pgx.Conn, label string, watchToScrapeUrl string, scrapedWatches []types.ScrapedWatch) ([]types.Watch, error) {
+func SaveWatch(dbPoolConn *pgxpool.Pool, label string, watchToScrapeUrl string, scrapedWatches []types.ScrapedWatch) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `INSERT INTO watch (label, watches, active, watch_to_scrape)
@@ -42,7 +43,7 @@ func SaveWatch(conn *pgx.Conn, label string, watchToScrapeUrl string, scrapedWat
 		"watchToScrape":  watchToScrapeUrl,
 	}
 
-	rows, err := conn.Query(context.Background(), dbQuery, args)
+	rows, err := dbPoolConn.Query(context.Background(), dbQuery, args)
 	if err != nil {
 		logger.Error().Msg("Kunde inte spara ny bevakning. Error:" + err.Error())
 		return nil, err
@@ -53,7 +54,7 @@ func SaveWatch(conn *pgx.Conn, label string, watchToScrapeUrl string, scrapedWat
 	return watches, nil
 }
 
-func DeleteWatch(conn *pgx.Conn, watchId string) (string, error) {
+func DeleteWatch(dbPoolConn *pgxpool.Pool, watchId string) (string, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `DELETE FROM watch
@@ -64,7 +65,7 @@ func DeleteWatch(conn *pgx.Conn, watchId string) (string, error) {
 		"watchId": watchId,
 	}
 
-	rows, err := conn.Query(context.Background(), dbQuery, args)
+	rows, err := dbPoolConn.Query(context.Background(), dbQuery, args)
 	if err != nil {
 		logger.Error().Msg("Kunde inte radera bevakning. Error:" + err.Error())
 		return "", err
@@ -75,7 +76,7 @@ func DeleteWatch(conn *pgx.Conn, watchId string) (string, error) {
 	return watchId, nil
 }
 
-func ToggleActiveStatuses(conn *pgx.Conn, ids []string, newActiveStatus bool) ([]types.Watch, error) {
+func ToggleActiveStatuses(dbPoolConn *pgxpool.Pool, ids []string, newActiveStatus bool) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `UPDATE watch
@@ -88,7 +89,7 @@ func ToggleActiveStatuses(conn *pgx.Conn, ids []string, newActiveStatus bool) ([
 		"ids":             ids,
 	}
 
-	rows, err := conn.Query(context.Background(), dbQuery, args)
+	rows, err := dbPoolConn.Query(context.Background(), dbQuery, args)
 	if err != nil {
 		logger.Error().Msg("Kunde inte ändra aktiv status. Error:" + err.Error())
 

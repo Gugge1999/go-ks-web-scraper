@@ -6,15 +6,16 @@ import (
 	"ks-web-scraper/src/types"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetAllNotifications(conn *pgx.Conn) ([]types.Notification, error) {
+func GetAllNotifications(dbPoolConn *pgxpool.Pool) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 	selectQuery := `SELECT * 
 						FROM NOTIFICATION
 							ORDER BY sent ASC`
 
-	rows, queryErr := conn.Query(context.Background(), selectQuery)
+	rows, queryErr := dbPoolConn.Query(context.Background(), selectQuery)
 
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att hämta notiser misslyckades: " + queryErr.Error())
@@ -25,7 +26,7 @@ func GetAllNotifications(conn *pgx.Conn) ([]types.Notification, error) {
 }
 
 // TODO: Kolla på https://hexacluster.ai/postgresql/connecting-to-postgresql-with-go-using-pgx/
-func InsertNewNotification(conn *pgx.Conn, watchId string) ([]types.Notification, error) {
+func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 
 	insertQuery := `INSERT INTO notification(watch_id)
@@ -36,7 +37,7 @@ func InsertNewNotification(conn *pgx.Conn, watchId string) ([]types.Notification
 		"watchId": watchId,
 	}
 
-	rows, queryErr := conn.Query(context.Background(), insertQuery, args)
+	rows, queryErr := dbPoolConn.Query(context.Background(), insertQuery, args)
 
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att skapa ny notification misslyckades: " + queryErr.Error())
