@@ -10,7 +10,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
-func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
+func ScrapeWatchInfo(watchToScrapeUrl string) []types.ScrapedWatch {
 	var names []string
 	var links []string
 	var postedDates []string
@@ -41,8 +41,6 @@ func ScrapeWatchInfo(watchToScrape string) []types.ScrapedWatch {
 
 		postedDates = append(postedDates, annonsDate)
 	})
-
-	watchToScrapeUrl := "https://klocksnack.se/search/1/?q=" + watchToScrape + "&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date"
 
 	c.Visit(watchToScrapeUrl)
 

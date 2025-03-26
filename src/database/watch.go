@@ -28,7 +28,7 @@ func GetAllWatches(conn *pgx.Conn) ([]types.Watch, error) {
 	return watches, nil
 }
 
-func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches []types.ScrapedWatch) ([]types.Watch, error) {
+func SaveWatch(conn *pgx.Conn, label string, watchToScrapeUrl string, scrapedWatches []types.ScrapedWatch) ([]types.Watch, error) {
 	logger := logger.GetLogger()
 
 	const dbQuery = `INSERT INTO watch (label, watches, active, watch_to_scrape)
@@ -36,10 +36,10 @@ func SaveWatch(conn *pgx.Conn, saveWatchDto types.SaveWatchDto, scrapedWatches [
 	 						(@label, @scrapedWatches, @active, @watchToScrape)
 								RETURNING *`
 	args := pgx.NamedArgs{
-		"label":          saveWatchDto.Label,
+		"label":          label,
 		"scrapedWatches": scrapedWatches,
 		"active":         true,
-		"watchToScrape":  saveWatchDto.WatchToScrape,
+		"watchToScrape":  watchToScrapeUrl,
 	}
 
 	rows, err := conn.Query(context.Background(), dbQuery, args)

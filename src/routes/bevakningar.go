@@ -31,18 +31,20 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	router.POST(apiBaseUrl+"save-watch", func(c *gin.Context) {
 		var saveWatchDto types.SaveWatchDto
 
-		shouldReturn := validateSaveWatchBody(c, saveWatchDto)
+		validatedSaveWatchDto, shouldReturn := validateSaveWatchBody(c, saveWatchDto)
 		if shouldReturn {
 			return
 		}
 
-		scrapedWatches := services.ScrapeWatchInfo(saveWatchDto.WatchToScrape)
+		watchToScrapeUrl := "https://klocksnack.se/search/1/?q=" + validatedSaveWatchDto.WatchToScrape + "&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date"
+
+		scrapedWatches := services.ScrapeWatchInfo(watchToScrapeUrl)
 		if len(scrapedWatches) == 0 {
-			c.JSON(422, gin.H{"message": "Kunde inte hitta några klockor med sökordet: " + saveWatchDto.WatchToScrape})
+			c.JSON(422, gin.H{"message": "Kunde inte hitta några klockor med sökordet: " + validatedSaveWatchDto.WatchToScrape})
 			return
 		}
 
-		dbRes, err := database.SaveWatch(conn, saveWatchDto, scrapedWatches)
+		dbRes, err := database.SaveWatch(conn, validatedSaveWatchDto.Label, watchToScrapeUrl, scrapedWatches)
 
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Kunde inte spara bevakning"})
@@ -97,28 +99,28 @@ func ApiRoutesBevakningar(router *gin.Engine, conn *pgx.Conn) {
 	})
 }
 
-func validateSaveWatchBody(c *gin.Context, saveWatchDto types.SaveWatchDto) bool {
+func validateSaveWatchBody(c *gin.Context, saveWatchDto types.SaveWatchDto) (types.SaveWatchDto, bool) {
 	if err := c.ShouldBindJSON(&saveWatchDto); err != nil {
 		c.JSON(422, gin.H{"message": "Body måste finnas och måste innehålla WatchToScrape och Label"})
-		return true
+		return saveWatchDto, true
 	}
 
 	if saveWatchDto.WatchToScrape == "" || saveWatchDto.Label == "" {
 		c.JSON(422, gin.H{"message": "saveWatchDto måste innehålla WatchToScrape och Label"})
-		return true
+		return saveWatchDto, true
 	}
 
 	if len(saveWatchDto.WatchToScrape) <= 3 || len(saveWatchDto.Label) <= 2 {
 		c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 3 respektive 2 tecken"})
-		return true
+		return saveWatchDto, true
 	}
 
 	if len(saveWatchDto.WatchToScrape) >= 35 || len(saveWatchDto.Label) >= 30 {
 		c.JSON(422, gin.H{"message": "watchToScrape och label måste vara minst 35 respektive 30 tecken"})
-		return true
+		return saveWatchDto, true
 	}
 
-	return false
+	return saveWatchDto, false
 }
 
 func createWatchDto(watches []types.Watch, notifications []types.Notification) []types.Watch {
