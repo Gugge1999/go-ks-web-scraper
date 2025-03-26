@@ -33,6 +33,7 @@ func setUpLogger() zerolog.Logger {
 		fmt.Fprintf(os.Stderr, "Kunde inte öppna, hitta eller skapa filen logs.log\n%v", logFileError)
 		// TODO: Kolla om det är rätt. Man kanske alltid ska stänga filen, även om det gick bra
 		defer runLogFile.Close()
+		panic(err)
 	}
 
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}

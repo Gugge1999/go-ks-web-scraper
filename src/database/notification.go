@@ -25,7 +25,6 @@ func GetAllNotifications(dbPoolConn *pgxpool.Pool) ([]types.Notification, error)
 	return getNotificationRows(rows)
 }
 
-// TODO: Kolla på https://hexacluster.ai/postgresql/connecting-to-postgresql-with-go-using-pgx/
 func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 
@@ -43,8 +42,6 @@ func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.No
 		logger.Error().Msg("SQL query för att skapa ny notification misslyckades: " + queryErr.Error())
 		return nil, queryErr
 	}
-
-	defer rows.Close()
 
 	return getNotificationRows(rows)
 }
