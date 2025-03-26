@@ -8,10 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgxpool.Pool
-
-// TODO: Ska den använda once do?
-func InitDB() {
+func InitDB() *pgxpool.Pool {
 	logger := logger.GetLogger()
 
 	dbConfig, confParseErr := pgxpool.ParseConfig(getDbUrl())
@@ -25,11 +22,7 @@ func InitDB() {
 		logger.Panic().Msg("Kunde inte skapa pgx connection pool: " + err.Error())
 	}
 
-	db = dbpool
-}
-
-func GetDB() *pgxpool.Pool {
-	return db
+	return dbpool
 }
 
 func getDbUrl() string {

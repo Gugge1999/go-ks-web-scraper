@@ -20,9 +20,7 @@ func main() {
 	// OBS: Måste ske tidigt
 	services.LoadDotEnvFile()
 
-	database.InitDB()
-
-	dbPoolConn := database.GetDB()
+	dbPoolConn := database.InitDB()
 
 	router := gin.Default()
 
