@@ -6,7 +6,6 @@ import (
 	"ks-web-scraper/src/types"
 	"net/http"
 	"runtime"
-	"runtime/metrics"
 	"sync/atomic"
 	"time"
 
@@ -62,15 +61,11 @@ func getApiStatus(startTime time.Time) types.ApiStatus {
 
 // TODO: Den här verkar endast öka med belastning men minskar aldrig
 func getMemoryUsageInMb() uint64 {
-	const myMetric = "/memory/classes/total:bytes"
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
 
-	sample := make([]metrics.Sample, 1)
-	sample[0].Name = myMetric
-
-	// Sample the metric.
-	metrics.Read(sample)
-
-	bytesInMb := sample[0].Value.Uint64() / 1024 / 1024
+	// Convert bytes to megabytes
+	bytesInMb := memStats.Alloc / 1024 / 1024
 
 	return bytesInMb
 }
