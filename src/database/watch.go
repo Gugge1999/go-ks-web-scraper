@@ -90,11 +90,7 @@ func ToggleActiveStatuses(conn *pgx.Conn, ids []string, newActiveStatus bool) ([
 
 	rows, err := conn.Query(context.Background(), dbQuery, args)
 	if err != nil {
-		if numberOfIds := len(ids); numberOfIds == 1 {
-			logger.Error().Msg("Kunde inte ändra status  på bevakning. Error:" + err.Error())
-		} else {
-			logger.Error().Msg("Kunde inte ändra statusar på bevakningar. Error:" + err.Error())
-		}
+		logger.Error().Msg("Kunde inte ändra aktiv status. Error:" + err.Error())
 
 		return nil, err
 	}

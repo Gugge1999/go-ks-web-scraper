@@ -13,7 +13,7 @@ import (
 var startTime = time.Now()
 
 func ApiRoutesApiStatus(router *gin.Engine) {
-	router.GET("/api/api-status", func(c *gin.Context) {
+	router.GET("/api/status", func(c *gin.Context) {
 		logger := logger.GetLogger()
 
 		conn, wsError := upgrader.Upgrade(c.Writer, c.Request, nil)
