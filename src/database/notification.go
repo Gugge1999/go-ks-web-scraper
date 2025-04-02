@@ -28,9 +28,9 @@ func GetAllNotifications(dbPoolConn *pgxpool.Pool) ([]types.Notification, error)
 func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 
-	insertQuery := `INSERT INTO notification(watch_id)
-						VALUES ($1)
-							RETURNING *`
+	const insertQuery = `INSERT INTO notification(watch_id)
+							VALUES ($1)
+								RETURNING *`
 
 	args := pgx.NamedArgs{
 		"watchId": watchId,
