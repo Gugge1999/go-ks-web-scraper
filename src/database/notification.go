@@ -11,11 +11,11 @@ import (
 
 func GetAllNotifications(dbPoolConn *pgxpool.Pool) ([]types.Notification, error) {
 	logger := logger.GetLogger()
-	selectQuery := `SELECT * 
+	const dbQuery = `SELECT * 
 						FROM NOTIFICATION
 							ORDER BY sent ASC`
 
-	rows, queryErr := dbPoolConn.Query(context.Background(), selectQuery)
+	rows, queryErr := dbPoolConn.Query(context.Background(), dbQuery)
 
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att hämta notiser misslyckades: " + queryErr.Error())
@@ -28,7 +28,7 @@ func GetAllNotifications(dbPoolConn *pgxpool.Pool) ([]types.Notification, error)
 func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.Notification, error) {
 	logger := logger.GetLogger()
 
-	const insertQuery = `INSERT INTO notification(watch_id)
+	const dbQuery = `INSERT INTO notification(watch_id)
 							VALUES ($1)
 								RETURNING *`
 
@@ -36,7 +36,7 @@ func InsertNewNotification(dbPoolConn *pgxpool.Pool, watchId string) ([]types.No
 		"watchId": watchId,
 	}
 
-	rows, queryErr := dbPoolConn.Query(context.Background(), insertQuery, args)
+	rows, queryErr := dbPoolConn.Query(context.Background(), dbQuery, args)
 
 	if queryErr != nil {
 		logger.Error().Msg("SQL query för att skapa ny notification misslyckades: " + queryErr.Error())
