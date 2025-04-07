@@ -14,6 +14,7 @@ var logger zerolog.Logger
 
 func GetLogger() zerolog.Logger {
 	once.Do(func() {
+		// TODO: Kolla att den här funktionen inte körs flera gånger
 		logger = setUpLogger()
 	})
 
