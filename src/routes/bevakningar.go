@@ -15,6 +15,7 @@ const apiBaseUrl = "/api/bevakningar/"
 
 func ApiRoutesBevakningar(router *gin.Engine, dbPoolConn *pgxpool.Pool) {
 	router.GET(apiBaseUrl+"all-watches", func(c *gin.Context) {
+		// TODO: Fixa goroutine
 		allNotifications, err1 := database.GetAllNotifications(dbPoolConn)
 		allWatches, err2 := database.GetAllWatches(dbPoolConn)
 
